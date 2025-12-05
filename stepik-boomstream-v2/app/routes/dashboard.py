@@ -62,7 +62,7 @@ def me():
     finally:
         db.close()
 
-TELEGRAM_WEBAPP_TEMPLATE_old = """
+TELEGRAM_WEBAPP_TEMPLATE = """
 <!doctype html>
 <html>
 <head>
@@ -151,7 +151,7 @@ TELEGRAM_WEBAPP_TEMPLATE_old = """
     {% if video_code %}
       <div class="bs-player">
         <iframe
-          src="https://play.boomstream.com/{{ video_code }}"
+          src="https://play.boomstream.com/{{ video_code }}?id_recovery={{ HASH_TO_IDENTIFY_USER }}"
           allowfullscreen
           allow="autoplay; encrypted-media"
         ></iframe>
@@ -193,7 +193,7 @@ TELEGRAM_WEBAPP_TEMPLATE_old = """
 </html>
 """
 
-TELEGRAM_WEBAPP_TEMPLATE = """
+TELEGRAM_WEBAPP_TEMPLATE_new = """
 <!doctype html>
 <html>
 <head>
@@ -253,6 +253,9 @@ def telegram_widget():
     video_code = "TsQAJHvj"  # TODO: заменить на реальный код Boomstream
     hash="sdt20252" 
     
-    return render_template_string(TELEGRAM_WEBAPP_TEMPLATE, 
+    
+
+    TELEGRAM_WEBAPP = render_template_string(TELEGRAM_WEBAPP_TEMPLATE, 
                                   video_code=video_code,
                                   HASH_TO_IDENTIFY_USER = hash)        
+    return TELEGRAM_WEBAPP

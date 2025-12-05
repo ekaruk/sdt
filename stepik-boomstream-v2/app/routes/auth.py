@@ -33,7 +33,7 @@ LOGIN_TEMPLATE = """
           data-size="large"
           data-userpic="false"
           data-request-access="write"
-          data-auth-url="https://vapid-agnus-unconversational.ngrok-free.dev/login/telegram/callback">
+          data-auth-url="https://sdt2025-web.onrender.com/login/telegram/callback">
   </script>
   
 
