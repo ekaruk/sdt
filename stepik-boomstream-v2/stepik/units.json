@@ -1,0 +1,44 @@
+{
+    "meta": {
+        "page": 1,
+        "has_next": false,
+        "has_previous": false
+    },
+    "units": [
+        {
+            "id": 1881160,
+            "section": 561993,
+            "lesson": 1855854,
+            "assignments": [
+                7794844,
+                7794845,
+                7794846,
+                7794849,
+                7794848,
+                7794847,
+                7794851,
+                7794850,
+                7794852,
+                7794853,
+                7803492,
+                7804435
+            ],
+            "position": 1,
+            "actions": {},
+            "progress": null,
+            "begin_date": null,
+            "end_date": null,
+            "soft_deadline": null,
+            "hard_deadline": null,
+            "grading_policy": "no_deadlines",
+            "begin_date_source": null,
+            "end_date_source": null,
+            "soft_deadline_source": null,
+            "hard_deadline_source": null,
+            "grading_policy_source": null,
+            "is_active": true,
+            "create_date": "2025-07-03T22:05:47Z",
+            "update_date": "2025-11-04T17:24:25Z"
+        }
+    ]
+}

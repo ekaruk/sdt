@@ -1,0 +1,4 @@
+https://stepik.org/api/courses/247644 - get list of sections
+https://stepik.org/api/sections/56199
+https://stepik.org/api/units/1881160
+https://stepik.org/api/lessons/1855854
