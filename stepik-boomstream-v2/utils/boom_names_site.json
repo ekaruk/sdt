@@ -1,0 +1,807 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Response>
+    <Items>
+        <Item>
+            <Email>Eva.zdanovica@gmail.com</Email>
+            <Phone/>
+            <Hash>521654367</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-09-18 10:54:51</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Zdanovics.edvins@gmail.com</Email>
+            <Phone/>
+            <Hash>326679293</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-09-18 10:54:51</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Happyvalentina@gmail.com</Email>
+            <Phone/>
+            <Hash>801453398</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-29 13:39:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>ion.by.108@gmail.com</Email>
+            <Phone/>
+            <Hash>127633951</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-29 09:11:22</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>fomenko.inna.1@mail.ru</Email>
+            <Phone/>
+            <Hash>670430623</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-28 09:47:01</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>shikamaru09@mail.ru</Email>
+            <Phone/>
+            <Hash>857270644</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-27 21:56:55</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>kelmanele@yandex.ru</Email>
+            <Phone/>
+            <Hash>883851710</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-27 12:36:12</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>smariga@mail.ru</Email>
+            <Phone/>
+            <Hash>308617280</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-27 12:31:37</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>aleps108@mail.ru</Email>
+            <Phone/>
+            <Hash>170673343</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-24 17:49:24</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>revival600@gmail.com</Email>
+            <Phone/>
+            <Hash>056435911</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-24 09:04:30</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Multimillioner@inbox.ru</Email>
+            <Phone/>
+            <Hash>777700833</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-23 18:46:14</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Ymuranova78@gmail.com</Email>
+            <Phone/>
+            <Hash>845454349</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-22 22:58:04</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>mosko2010@mail.ru</Email>
+            <Phone/>
+            <Hash>250543592</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-22 14:42:27</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>hasinman@mail.ru</Email>
+            <Phone/>
+            <Hash>687963206</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-22 13:58:16</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>tatnov32@yandex.ru</Email>
+            <Phone/>
+            <Hash>439534673</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-22 13:28:43</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>adja92@mail.ru</Email>
+            <Phone/>
+            <Hash>274095357</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-22 13:28:43</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>alesya1006@gmail.com</Email>
+            <Phone/>
+            <Hash>389809785</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-21 09:22:21</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>iloxana@mail.ru</Email>
+            <Phone/>
+            <Hash>138776649</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-21 07:38:31</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>1112nasyrtdinova@gmail.com</Email>
+            <Phone/>
+            <Hash>156946579</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-21 07:38:31</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>helen_the_excellent@mail.ru</Email>
+            <Phone/>
+            <Hash>150936867</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 16:28:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>aichka.n@gmail.com</Email>
+            <Phone/>
+            <Hash>185177469</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 16:28:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>oksanagrozina3@gmail.com</Email>
+            <Phone/>
+            <Hash>975937275</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 16:28:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>skachkov44@gmail.com</Email>
+            <Phone/>
+            <Hash>849368415</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 16:28:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>anibezushko@gmail.com</Email>
+            <Phone/>
+            <Hash>958911917</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 16:28:39</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>test_676352917435@gmail.com</Email>
+            <Phone/>
+            <Hash>025903191</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>18</Recovery>
+            <DatePurchase>2025-08-20 11:10:58</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>masterkos1725@mail.ru</Email>
+            <Phone/>
+            <Hash>005241650</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>5</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>eldarterpimov@gmail.com</Email>
+            <Phone/>
+            <Hash>783233616</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>kabitskaya@gmail.com</Email>
+            <Phone/>
+            <Hash>934418167</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Kotimokin@mail.ru</Email>
+            <Phone/>
+            <Hash>153497347</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>antone_96@mail.ru</Email>
+            <Phone/>
+            <Hash>124215710</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Helenochka1983@mail.ru</Email>
+            <Phone/>
+            <Hash>182605202</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Liana.nikitina45@mail.ru</Email>
+            <Phone/>
+            <Hash>272802190</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Kvoznyuk@yahoo.co.uk</Email>
+            <Phone/>
+            <Hash>860841269</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>veronika.podkalyuk@yandex.ru</Email>
+            <Phone/>
+            <Hash>293642699</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>yavlash79@gmail.com</Email>
+            <Phone/>
+            <Hash>663237692</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>alinapalsing@gmail.com</Email>
+            <Phone/>
+            <Hash>111251293</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Pavlishina90@mail.ru</Email>
+            <Phone/>
+            <Hash>582083267</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>tatnov32@yandex.ru</Email>
+            <Phone/>
+            <Hash>714142325</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>janelbay2019@gmail.com</Email>
+            <Phone/>
+            <Hash>727119025</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>o.merkulin@yandex.ru</Email>
+            <Phone/>
+            <Hash>275548890</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-20 10:48:49</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>neuronalt@yandex.ru</Email>
+            <Phone/>
+            <Hash>131511916</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 17:46:36</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Volkovatg163@mail.ru</Email>
+            <Phone/>
+            <Hash>991144841</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>8</Recovery>
+            <DatePurchase>2025-08-19 17:46:36</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>fedotov_massage@mail.ru</Email>
+            <Phone/>
+            <Hash>651356520</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 12:15:57</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Yenova.marina@gmail.com</Email>
+            <Phone/>
+            <Hash>404362295</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 11:27:45</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>parafin4ik87@yandex.ru</Email>
+            <Phone/>
+            <Hash>200186441</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 10:52:28</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>vilasisi1972@gmail.com</Email>
+            <Phone/>
+            <Hash>885617506</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-19 10:52:28</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>larisavgg77@gmail.com</Email>
+            <Phone/>
+            <Hash>792835915</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>8</Recovery>
+            <DatePurchase>2025-08-19 10:52:28</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Zinkin.pasha@yandex.ru</Email>
+            <Phone/>
+            <Hash>553354136</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 10:23:35</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>elena_aktau@inbox.ru</Email>
+            <Phone/>
+            <Hash>481402048</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-19 10:23:35</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>rezka2013@bk.ru</Email>
+            <Phone/>
+            <Hash>090347099</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-19 10:23:35</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>mikada@mail.ru</Email>
+            <Phone/>
+            <Hash>019391449</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:06</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-19 10:23:35</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>khv.korobko@gmail.com</Email>
+            <Phone/>
+            <Hash>654777799</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 19:00:10</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-19 10:23:35</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>okguilpain@outlook.com</Email>
+            <Phone/>
+            <Hash>822420684</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 17:24:25</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>svetdar@mail.ru</Email>
+            <Phone/>
+            <Hash>888575454</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 17:24:25</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>edrrt@inbox.ru</Email>
+            <Phone/>
+            <Hash>933975537</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 17:24:25</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>flera.imamieva@gmail.com</Email>
+            <Phone/>
+            <Hash>165140477</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 16:01:59</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>kim.seidek@gmail.com</Email>
+            <Phone/>
+            <Hash>420789079</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 16:01:59</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>marykopylova@list.ru</Email>
+            <Phone/>
+            <Hash>244929927</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-01 01:00:54</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-18 16:01:59</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Molyia@mail.ru</Email>
+            <Phone/>
+            <Hash>946230701</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>12</Recovery>
+            <DatePurchase>2025-08-18 15:40:47</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>hs.jeanne@yahoo.com</Email>
+            <Phone/>
+            <Hash>056270992</Hash>
+            <Period>90</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 15:31:04</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Marynalogvynenko@gmail.com</Email>
+            <Phone/>
+            <Hash>188981525</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-01 01:00:54</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-18 15:25:34</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>proyavlenost@gmail.com</Email>
+            <Phone/>
+            <Hash>933688123</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 15:12:13</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>farzadmehtilu@gmail.com</Email>
+            <Phone/>
+            <Hash>165871740</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-01 01:00:54</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-18 15:12:13</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>daoberik@gmail.com</Email>
+            <Phone/>
+            <Hash>289439528</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 01:00:54</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 15:11:59</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>ekaruk@gmail.com</Email>
+            <Phone/>
+            <Hash>029745470</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 14:55:04</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Oleksandra.herdt@gmail.com</Email>
+            <Phone/>
+            <Hash>448816826</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 14:42:18</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Swetikvogel@web.de</Email>
+            <Phone/>
+            <Hash>509232928</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 14:42:18</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>denis.dzhulya@mail.ru</Email>
+            <Phone/>
+            <Hash>439166414</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-18 14:42:18</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>buselalex@gmail.com</Email>
+            <Phone/>
+            <Hash>946117006</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-01 01:00:54</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery/>
+            <DatePurchase>2025-08-18 14:42:18</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>ekaruk@gmail.com</Email>
+            <Phone/>
+            <Hash>238849376</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>18</Recovery>
+            <DatePurchase>2025-08-15 13:01:47</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+        <Item>
+            <Email>Ka4ik88@gmail.com</Email>
+            <Phone/>
+            <Hash>308502337</Hash>
+            <Period>180</Period>
+            <AccessExpirationDate>2025-12-31 22:00:48</AccessExpirationDate>
+            <AccessStartDate/>
+            <Recovery>20</Recovery>
+            <DatePurchase>2025-08-15 13:01:47</DatePurchase>
+            <IsManual>1</IsManual>
+        </Item>
+    </Items>
+    <Status>Success</Status>
+    <Version>1.0</Version>
+    <Versions>
+        <Item>
+            <version>1.0</version>
+            <description>Boomstream API v.1.0 loads by default</description>
+        </Item>
+        <Item>
+            <version>1.1</version>
+            <description>Boomstream API v.1.1. 
+Add &amp;ver=1.1 to the HTTP request to use it. 
+Change log: it is changed the response format for the method ppv/listBuyers</description>
+        </Item>
+        <Item>
+            <version>1.2</version>
+            <description>Boomstream API v.1.2. 
+Add &amp;ver=1.2 to the HTTP request to use it. 
+Change log: it is changed the response format for methods ppv/listMedia and ppv/addMedia</description>
+        </Item>
+    </Versions>
+    <RequestURI>/api/ppv/listbuyers?apikey=nGHVT1zCgruOqrPl8WuAqXUMDHNJiIAu&amp;code=axkjwOxq&amp;media=EqFdNV9z</RequestURI>
+</Response>

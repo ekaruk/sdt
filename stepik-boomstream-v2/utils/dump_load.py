@@ -8,6 +8,11 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.engine import Engine
 
+#"Использование:\n"
+#              $env:DATABASE_URL = "sqlite:///local.db"
+#            "  python dump_load.py export dump.json\n"
+#            "  python dump_load.py import dump.json [--truncate]\n"
+
 
 # ---------- утилиты подключения к БД ----------
 
@@ -50,6 +55,26 @@ def serialize_value(value):
     """
     if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
         return value.isoformat()
+    return value
+
+
+def deserialize_value(column, value):
+    """
+    Convert JSON-loaded values back into Python objects expected by SQLAlchemy
+    for DateTime/Date/Time columns.
+    """
+    from sqlalchemy import DateTime, Date, Time
+
+    if value is None:
+        return None
+
+    col_type = column.type
+    if isinstance(col_type, DateTime):
+        return datetime.datetime.fromisoformat(value)
+    if isinstance(col_type, Date):
+        return datetime.date.fromisoformat(value)
+    if isinstance(col_type, Time):
+        return datetime.time.fromisoformat(value)
     return value
 
 
@@ -151,7 +176,11 @@ def import_db(filename: str, truncate: bool = False):
             filtered_rows = []
             for row in rows:
                 # Берём только те ключи, которые реально существуют в таблице
-                filtered = {k: v for k, v in row.items() if k in existing_cols}
+                filtered = {}
+                for k, v in row.items():
+                    if k in existing_cols:
+                        column = table.columns[k]
+                        filtered[k] = deserialize_value(column, v)
                 if filtered:
                     filtered_rows.append(filtered)
 

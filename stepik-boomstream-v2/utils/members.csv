@@ -13,7 +13,7 @@ id,is_self,is_contact,is_mutual_contact,is_deleted,is_bot,is_verified,is_restric
 461807062,False,True,False,False,False,False,False,False,False,Александр Контатовский,Минск ШДТ,gaurangavilasadas,375291291999,,
 1316105241,False,False,False,False,False,False,False,False,False,Николай,Федотов,Nikolai_Fedotov,,,
 833182296,False,False,False,False,False,False,False,False,False,Малати,,malatidd,,,
-1238299514,False,False,False,False,False,False,False,False,False,Павлова,Татьяна,Pavlova_Tatyana_Gennadyevna,79277298280,,
+1238299514,False,к,False,False,False,False,False,False,False,Павлова,Татьяна,Pavlova_Tatyana_Gennadyevna,79277298280,,
 5807886348,False,True,True,False,False,False,False,False,False,Larisa Лариса Гуамбэ,Guambe ШДТ,,258847583608,,
 407679305,False,True,False,False,False,False,False,False,False,Беляев Александр,ШДТ,aldr_b,,,
 5002311507,False,True,True,False,False,False,False,False,False,Olga Краснова Ольга ШДТ,Krasnova,Krasnova_Olga12,79046672590,,
