@@ -4,7 +4,7 @@ import os
 import requests
 from dotenv import load_dotenv
 
-from app.db import SessionLocal
+from app.db import Base, SessionLocal, engine
 from app.models import StepikModule, StepikLesson
 
 

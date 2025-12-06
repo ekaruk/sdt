@@ -1,6 +1,4 @@
 
-
-
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -19,7 +17,7 @@ from telegram.ext import (
 )
 
 #TOKEN = "YOUR_BOT_TOKEN_HERE"
-BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
+DEV_BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
 #WEBAPP_URL = "https://sdt2025-web.onrender.com/telegram-widget"
 #WEBAPP_URL = "https://vapid-agnus-unconversational.ngrok-free.dev/telegram-widget"
 WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
@@ -221,7 +219,7 @@ async def restore_keyboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ----- ЗАПУСК БОТА -----
 def main():
-    app = Application.builder().token(BOT_TOKEN).build()
+    app = Application.builder().token(DEV_BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_callbacks))
