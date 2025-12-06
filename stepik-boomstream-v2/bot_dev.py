@@ -94,8 +94,8 @@ SECTIONS = {
     },
 }
 
-WIDE_PREFIX_1 = "\u2800" * 2
-WIDE_PREFIX_2 = "\u2800" * 40
+WIDE_PREFIX_1 = "\u2800" #* 2
+WIDE_PREFIX_2 = "\u2800" #* 40
 
 
 def build_sections_keyboard() -> InlineKeyboardMarkup:
@@ -155,7 +155,7 @@ def build_subsections_keyboard(section_id: str) -> InlineKeyboardMarkup:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Команда /start — сразу показываем разделы"""
     await update.message.reply_text(
-        "Выберите раздел:",
+        "Выберите раздел для просмотра видео:",
         reply_markup=build_sections_keyboard(),
     )
 
@@ -171,7 +171,7 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         text = (
             f"Вы выбрали: {SECTIONS[sec_id]['title']}\n"
-            f"Теперь выберите урок:"
+            f"Теперь выберите урок для просмотра видео:"
         )
         await query.edit_message_text(
             text=text,

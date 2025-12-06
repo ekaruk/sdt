@@ -68,3 +68,21 @@ class StepikLesson(Base):
 
     def __repr__(self):
         return f"<StepikLesson id={self.id} module={self.module_id} title={self.title}>"    
+
+class TelegramUser(Base):
+    __tablename__ = "telegram_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    username = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+
+    # обратная связь: один TelegramUser → один User
+    user = relationship("User", back_populates="telegram_user", uselist=False)
+
+    def __repr__(self):
+        return (
+            f"<TelegramUser id={self.id} username={self.username} "
+            f"name={self.first_name} {self.last_name}>"
+        )
