@@ -1,29 +1,23 @@
 
+
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     WebAppInfo,
-    ReplyKeyboardMarkup, 
-    KeyboardButton,
 )
 from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
     ContextTypes,
-    MessageHandler, 
-    filters,
 )
 
-#TOKEN = "YOUR_BOT_TOKEN_HERE"
+from datetime import datetime
+
 DEV_BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
-#WEBAPP_URL = "https://sdt2025-web.onrender.com/telegram-widget"
-#WEBAPP_URL = "https://vapid-agnus-unconversational.ngrok-free.dev/telegram-widget"
 WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
 
-
-# ----- ДАННЫЕ -----
 SECTIONS = {
     "561993": {
         "title": "Раздел 1. Основные энергии",
@@ -103,21 +97,12 @@ SECTIONS = {
 WIDE_PREFIX_1 = "\u2800" * 2
 WIDE_PREFIX_2 = "\u2800" * 40
 
-refresh_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton("🔄 Обновить")]
-    ],
-    resize_keyboard=True,     # растягивает на ширину экрана
-    one_time_keyboard=False   # кнопка всегда видна
-)
 
-# ----- КЛАВИАТУРЫ -----
 def build_sections_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура 1-го уровня: выбор раздела"""
+    """1-й уровень: разделы + кнопка обновления"""
     keyboard = []
 
     for sec_id, data in SECTIONS.items():
-#        title = "\u2003" + data["title"] 
         title = f"{WIDE_PREFIX_1}{data['title']}{WIDE_PREFIX_2}"
         keyboard.append([
             InlineKeyboardButton(
@@ -126,108 +111,97 @@ def build_sections_keyboard() -> InlineKeyboardMarkup:
             )
         ])
 
+    # внизу добавляем кнопку обновления меню
+    keyboard.append([
+        InlineKeyboardButton(
+            text="🔄 Обновить меню",
+            callback_data="refresh:sections",
+        )
+    ])
+
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def build_subsections_keyboard(section_id: str) -> InlineKeyboardMarkup:
-    """Клавиатура 2-го уровня: выбор подраздела (открывает WebApp) + Назад"""
+    """2-й уровень: подразделы (открывают Boomstream) + Назад + Обновить"""
     keyboard = []
     subs = SECTIONS[section_id]["subs"]
-    
 
     for idx, sub_title in enumerate(subs, start=1):
-        # Формируем ссылку на WebApp с параметрами раздела и подраздела
- #       url = f"{BASE_WEBAPP_URL}?section={section_id}&sub={idx}"
         url = WEBAPP_URL2
         title = f"{sub_title}{WIDE_PREFIX_2}"
         keyboard.append([
             InlineKeyboardButton(
                 text=title,
- 
-                web_app=WebAppInfo(url=url),  # <-- открываем WebApp
+                web_app=WebAppInfo(url=url),  # просто ссылка, работает и в Web, и в телефоне
             )
         ])
 
-    # Кнопка назад к разделам (по-прежнему callback_data)
+    # строка с Назад и Обновить
     keyboard.append([
         InlineKeyboardButton(
             text="⬅ Назад к разделам",
             callback_data="back:sections",
-        )
+        ),
+        InlineKeyboardButton(
+            text="🔄 Обновить меню",
+            callback_data="refresh:sections",
+        ),
     ])
 
-    return InlineKeyboardMarkup(keyboard)
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
-# ----- ХЕНДЛЕРЫ -----
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
-    # 1) Сообщение, которое включает постоянную кнопку "Обновить"
-    await update.message.reply_text(
-        "Кнопка 🔄 Обновить всегда внизу экрана.",
-        reply_markup=refresh_keyboard,
-    )
-
-    # 2) Сообщение с меню разделов (inline-кнопки)
-    """Команда /start — показываем разделы"""
+    """Команда /start — сразу показываем разделы"""
     await update.message.reply_text(
         "Выберите раздел:",
         reply_markup=build_sections_keyboard(),
     )
 
-async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Просто заново показываем меню разделов
-    await update.message.reply_text(
-        "Обновлено. Выберите раздел:",
-        reply_markup=build_sections_keyboard(),
-    )
-
-
 
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка callback'ов (только секции и кнопка Назад)"""
     query = update.callback_query
     data = query.data
-
     await query.answer()
 
-    # Выбор раздела: sec:<id>
+    # выбор раздела
     if data.startswith("sec:"):
         _, sec_id = data.split(":", maxsplit=1)
 
         text = (
             f"Вы выбрали: {SECTIONS[sec_id]['title']}\n"
-            f"Теперь выберите подраздел :"
+            f"Теперь выберите урок:"
         )
         await query.edit_message_text(
             text=text,
             reply_markup=build_subsections_keyboard(sec_id),
         )
 
-    # Назад к разделам
+    # назад к разделам
     elif data == "back:sections":
         await query.edit_message_text(
             text="Выберите раздел:",
             reply_markup=build_sections_keyboard(),
         )
 
-async def restore_keyboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Меню:",
-        reply_markup=refresh_keyboard
-    )
+    # обновить меню разделов
+    elif data == "refresh:sections":
+        await query.edit_message_text(
+            text=f"Меню обновлено {datetime.now().strftime('%H:%M:%S')}. Выберите раздел:",
+            reply_markup=build_sections_keyboard(),
+        )
 
-# ----- ЗАПУСК БОТА -----
+
 def main():
     app = Application.builder().token(DEV_BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(handle_callbacks))
-    app.add_handler(MessageHandler(filters.Regex("^🔄 Обновить$"), refresh))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restore_keyboard))
 
     app.run_polling()
 
 
 if __name__ == "__main__":
     main()
+
