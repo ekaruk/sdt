@@ -1,233 +1,247 @@
 
-
-
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     WebAppInfo,
-    ReplyKeyboardMarkup, 
-    KeyboardButton,
 )
 from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
     ContextTypes,
-    MessageHandler, 
-    filters,
 )
+from datetime import datetime
 
-#TOKEN = "YOUR_BOT_TOKEN_HERE"
+from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
+
+import sys
+from pathlib import Path
+
+#python -m bots.bot_dev
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from app.auth import get_user_by_telegram_id
+
+DEFAULT_VIEW_MODE = "mobile"
 BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
-#WEBAPP_URL = "https://sdt2025-web.onrender.com/telegram-widget"
-#WEBAPP_URL = "https://vapid-agnus-unconversational.ngrok-free.dev/telegram-widget"
-WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
+#WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
+WEBAPP_URL_STEPIK="https://stepik.org/lesson/"
+WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/{boom_media}?id_recovery={boom_password}"
+WEBAPP_URL_TEMPLATE_WITHOUT_PASS = "https://play.boomstream.com/{boom_media}"
 
+def get_view_mode(context):
+    return context.user_data.get("view_mode", DEFAULT_VIEW_MODE)
 
-# ----- ДАННЫЕ -----
-SECTIONS = {
-    "561993": {
-        "title": "Раздел 1. Основные энергии",
-        "subs": [
-            "Урок 1. Основные желания человека",
-            "Урок 2. Психическое тело",
-            "Урок 3. Основные энергии",
-            "Урок 4. Хронические состояния нехватки энергии",
-            "Урок 5. Виды перенапряжения",
-            "Урок 6. Иллюзии",
-            "Урок 7. О красоте, влиянии, бесплодии",
-            "Урок 8. Психическое напряжение. Как и где оно скапливается?",
-            "Урок 9. Взаимодействие физического и психического тела",
-            "Урок 10. Психические каналы: Шротосы и Нади",
-        ],
-    },
-    "579296": {
-        "title": "Раздел 2. Блоки",
-        "subs": [
-            "Урок 11. Психические слои. Их структура.",
-            "Урок 12. Психические слои. Их функции в психическом теле.",
-            "Урок 13. Блоки. Как они возникают и как влияют на человека.",
-            "Урок 14. Прана. Её движение в организме.",
-            "Урок 15. Блоки на глубоких слоях",
-            "Урок 16. Блоки и их комбинации на разных слоях",
-            "Урок 17. Влияние нехватки энергии на физическое тело.",
-            "Урок 18. Формирование болезней и блоков",
-            "Урок 19. Виды и правила очищения организма",
-            "Урок 20. Проблемы при нарушении правил очищения организма.",
-        ],
-    },
-    "564649": {
-        "title": "Раздел 3. Оценка здоровья",
-        "subs": [
-            "Урок 21. Оценка состояния организма",
-            "Урок 22. Категории здоровья человека",
-            "Урок 23. Первая категория здоровья",
-            "Урок 24. Вторая категория здоровья",
-            "Урок 25.1 Третья группа здоровья",
-            "Урок 25.2 Четвёртая категория здоровья",
-        ],
-    },
-    "579297": {
-        "title": "Раздел 4. Вода",
-        "subs": [
-            "Урок 26. Наполнение энергией воды",
-            "Урок 27. Безопасное наполнение энергией воды (часть 1)",
-            "Урок 27. Безопасное наполнение энергией воды (часть 2)",
-            "Урок 28. Статика",
-            "Урок 29. Статика",
-            "Урок 30. Деревья",
-        ],
-    },
-    "611382": {
-        "title": "Раздел 5. Воздух",
-        "subs": [
-            "Урок 31. Динамика",
-            "Урок 32. Динамика",
-            "Урок 33 Динамика",
-            "Урок 34. Пассивное очищение Воздухом. Пост.",
-        ],
-    },
-    "611383": {
-        "title": "Раздел 6. Солнце",
-        "subs": [
-            "Урок 35. Посты",
-            "Урок 35. Посты (часть 2)",
-            "Урок 36. Наполнение Солнцем на открытом солнце",
-            "Урок 37. Практика Бани/Сауны/Хамам",
-            "Урок 37. Практика Бани/Сауны/Хамам (часть2)",
-            "Урок 38. Влияние климата",
-            "Урок 39. Внутренние особенности человека",
-        ],
-    },
-}
+def toggle_view_mode(context):
+    current = get_view_mode(context)
+    new_mode = "web" if current == "mobile" else "mobile"
+    context.user_data["view_mode"] = new_mode
+    return new_mode
 
-WIDE_PREFIX_1 = "\u2800" * 2
-WIDE_PREFIX_2 = "\u2800" * 40
+def adapt_title(title: str, context):
 
-refresh_keyboard = ReplyKeyboardMarkup(
-    keyboard=[
-        [KeyboardButton("🔄 Обновить")]
-    ],
-    resize_keyboard=True,     # растягивает на ширину экрана
-    one_time_keyboard=False   # кнопка всегда видна
-)
-
-# ----- КЛАВИАТУРЫ -----
-def build_sections_keyboard() -> InlineKeyboardMarkup:
-    """Клавиатура 1-го уровня: выбор раздела"""
-    keyboard = []
-
-    for sec_id, data in SECTIONS.items():
-#        title = "\u2003" + data["title"] 
-        title = f"{WIDE_PREFIX_1}{data['title']}{WIDE_PREFIX_2}"
-        keyboard.append([
-            InlineKeyboardButton(
-                text=title,
-                callback_data=f"sec:{sec_id}",
-            )
-        ])
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-
-def build_subsections_keyboard(section_id: str) -> InlineKeyboardMarkup:
-    """Клавиатура 2-го уровня: выбор подраздела (открывает WebApp) + Назад"""
-    keyboard = []
-    subs = SECTIONS[section_id]["subs"]
+    padding = "\u2800" * 30 if get_view_mode(context) == "mobile" else "\u2800" * 2
+    new_title = f"\u2800\u2800{title}{padding}"
     
+    return new_title
 
-    for idx, sub_title in enumerate(subs, start=1):
-        # Формируем ссылку на WebApp с параметрами раздела и подраздела
- #       url = f"{BASE_WEBAPP_URL}?section={section_id}&sub={idx}"
-        url = WEBAPP_URL2
-        title = f"{sub_title}{WIDE_PREFIX_2}"
-        keyboard.append([
+def build_video_url(current_node: Any, context) -> str:
+    boom_media = current_node.get("boom_media", "")
+    
+    boom_password = context.user_data.get("boom_password", "")
+    
+    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "i7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
+
+    if boom_media in list_media_no_pass:
+        webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
+    else:
+        webapp_url = WEBAPP_URL_TEMPLATE.format(boom_media=boom_media, 
+                                                boom_password=boom_password)
+    return webapp_url
+
+
+
+def get_bottom_row(node: any, context) -> list[InlineKeyboardButton]:
+    
+    bottom_row: list[InlineKeyboardButton] = []
+    parent_id = node.get("parent")
+    
+    if parent_id is not None:
+        bottom_row.append(
             InlineKeyboardButton(
-                text=title,
- 
-                web_app=WebAppInfo(url=url),  # <-- открываем WebApp
+                text="⬅ Назад",
+                callback_data=f"menu:{parent_id}",
             )
-        ])
-
-    # Кнопка назад к разделам (по-прежнему callback_data)
-    keyboard.append([
-        InlineKeyboardButton(
-            text="⬅ Назад к разделам",
-            callback_data="back:sections",
         )
-    ])
+
+    bottom_row.append(
+        InlineKeyboardButton(
+            text="🔄 Обновить",
+            callback_data=f"refresh:root",   # важно передать текущий узел
+        )
+    )
+
+    if parent_id is None:
+        view_mode = get_view_mode(context)
+        mode_label = "💻 Web" if view_mode == "web" else "📱 Mobile"
+        bottom_row.append(
+            InlineKeyboardButton(mode_label, callback_data="toggle:mode")
+        )
+
+    return bottom_row
+
+def build_menu_keyboard(node_id: str, context) -> InlineKeyboardMarkup:
+    
+    """
+    Строим клавиатуру для любого узла дерева SECTIONS.
+    - Если у узла есть children -> рисуем пункты меню (подразделы/уроки).
+    - Добавляем кнопку "Назад", если есть parent.
+    """
+    node = SECTIONS[node_id]
+    keyboard: list[list[InlineKeyboardButton]] = []
+
+    # Кнопки для детей (подменю / уроки)
+    for child_id in node.get("children", []):
+        child = SECTIONS[child_id]
+#        if "lesson_id" in child:
+#            url = WEBAPP_URL2
+#            keyboard_button = InlineKeyboardButton(
+#                text=child["title"],
+#                web_app=WebAppInfo(url=url),  # в callback передаем id узла
+#            )        
+#        else:
+        keyboard_button = InlineKeyboardButton(
+                text=adapt_title(child['title'], context),
+                callback_data=f"menu:{child_id}",  # в callback передаем id узла
+            )
+        
+        keyboard.append([keyboard_button])
+
+
+    bottom_row = get_bottom_row(node, context)
+    keyboard.append(bottom_row)
 
     return InlineKeyboardMarkup(keyboard)
 
 
-# ----- ХЕНДЛЕРЫ -----
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+    tg_user = update.effective_user
+    tg_id = tg_user.id
 
-    # 1) Сообщение, которое включает постоянную кнопку "Обновить"
+    # 1. Проверяем, есть ли такой пользователь в таблице users
+    user = get_user_by_telegram_id(tg_id)
+    error_text = None
+    if not user:
+        # НЕТ пользователя с таким telegram_id → считаем неавторизованным
+        error_text = "У вас нет доступа к боту."
+    elif not user.boom_password:
+        error_text = f"Здравствуйте {user.first_name} {user.last_name}!\n" \
+                      "Извините, у Вас пока нет доступа к видео." \
+                      "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
+                      "И сообщите ваш Telegram ID: " + tg_id
+    else:
+        context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
+        context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
+    
+    if error_text:
+        if update.message:
+            await update.message.reply_text(error_text)
+        else:
+            await update.callback_query.edit_message_text(error_text)
+        return
+    
+    """Команда /start — показываем корень дерева"""
     await update.message.reply_text(
-        "Кнопка 🔄 Обновить всегда внизу экрана.",
-        reply_markup=refresh_keyboard,
+        SECTIONS["root"]["title"],
+        reply_markup=build_menu_keyboard("root", context),
     )
 
-    # 2) Сообщение с меню разделов (inline-кнопки)
-    """Команда /start — показываем разделы"""
-    await update.message.reply_text(
-        "Выберите раздел:",
-        reply_markup=build_sections_keyboard(),
-    )
 
-async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # Просто заново показываем меню разделов
-    await update.message.reply_text(
-        "Обновлено. Выберите раздел:",
-        reply_markup=build_sections_keyboard(),
-    )
-
-
-
-async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработка callback'ов (только секции и кнопка Назад)"""
+async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Универсальный хендлер для всех уровней меню"""
     query = update.callback_query
-    data = query.data
-
+    data = query.data              # ожидаем "menu:<node_id>"
     await query.answer()
 
-    # Выбор раздела: sec:<id>
-    if data.startswith("sec:"):
-        _, sec_id = data.split(":", maxsplit=1)
+    
+    # 1) Обновить текущий узел
+    if data.startswith("refresh:"):
 
-        text = (
-            f"Вы выбрали: {SECTIONS[sec_id]['title']}\n"
-            f"Теперь выберите подраздел :"
-        )
+        text = SECTIONS["root"]["title"] + f"\n\n(обновлено {datetime.now().strftime('%H:%M:%S')})"
+     
+        await query.edit_message_text(
+                text=text,
+                reply_markup=build_menu_keyboard("root", context),
+            )
+        return
+    # 2) Переход по меню: menu:<node_id>
+    if data.startswith("menu:"):
+        # вытаскиваем id узла
+        _, node_id = data.split(":", maxsplit=1)
+        node = SECTIONS[node_id]
+
+        # если у узла НЕТ детей и есть lesson_id — это "лист" (конечный урок)
+        if not node.get("children") and "lesson_id" in node:
+            lesson_id = node["lesson_id"]
+
+            title = node["title"]
+            title_parent = SECTIONS[node["parent"]]["title"]
+            keyboard: list[list[InlineKeyboardButton]] = []
+ 
+            # здесь делаешь то, что нужно с уроком:
+            # можно отправить ссылку, WebApp, текст и т.п.
+            # я для примера просто отправлю текст с ID урока и общей ссылкой
+            webapp_url = build_video_url(node, context)
+            webapp_button = InlineKeyboardButton(
+                text=adapt_title("📺 Просмотреть видеоурок", context),
+                web_app=WebAppInfo(url=webapp_url)
+                )
+            keyboard.append([webapp_button])
+            
+            webapp_stepik_button = InlineKeyboardButton(
+                text=adapt_title("📚 Выполнить тест к уроку на Stepik", context),
+                web_app=WebAppInfo(url=WEBAPP_URL_STEPIK + str(lesson_id))
+                )
+            keyboard.append([webapp_stepik_button])
+
+            bottom_row = get_bottom_row(node, context)
+            keyboard.append(bottom_row)
+
+            await query.edit_message_text(
+                f"📙 {title_parent}\n📘{title}\n\nНажмите кнопку ниже, чтобы открыть урок:",
+                reply_markup=InlineKeyboardMarkup(keyboard)
+            )
+            return
+    
+    if data == "toggle:mode":
+        new_mode = toggle_view_mode(context)
+
+        # После переключения — возвращаем пользователя в текущее меню
+        # но лучше в корень, так более логично
+        text = SECTIONS["root"]["title"] + f"\n\nРежим интерфейса переключен на: {new_mode}\nДля возвращения к прошлому режиму отображения нажмите кнопку еще раз."
         await query.edit_message_text(
             text=text,
-            reply_markup=build_subsections_keyboard(sec_id),
+            reply_markup=build_menu_keyboard("root", context),
         )
-
-    # Назад к разделам
-    elif data == "back:sections":
-        await query.edit_message_text(
-            text="Выберите раздел:",
-            reply_markup=build_sections_keyboard(),
-        )
-
-async def restore_keyboard(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Меню:",
-        reply_markup=refresh_keyboard
+        return
+    # если у узла есть children — это раздел/подраздел, рисуем подменю
+    text = node["title"]
+    await query.edit_message_text(
+        text=text,
+        reply_markup=build_menu_keyboard(node_id, context),
     )
 
-# ----- ЗАПУСК БОТА -----
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(handle_callbacks))
-    app.add_handler(MessageHandler(filters.Regex("^🔄 Обновить$"), refresh))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, restore_keyboard))
-
+    # ловим только callback_data, начинающиеся с "menu:"
+    app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^(menu|refresh|toggle):"))
     app.run_polling()
 
 

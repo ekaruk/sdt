@@ -25,6 +25,11 @@ sys.path.insert(0, str(ROOT))
 from app.auth import get_user_by_telegram_id
 
 DEFAULT_VIEW_MODE = "mobile"
+DEV_BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
+#WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
+WEBAPP_URL_STEPIK="https://stepik.org/lesson/"
+WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/{boom_media}?id_recovery={boom_password}"
+WEBAPP_URL_TEMPLATE_WITHOUT_PASS = "https://play.boomstream.com/{boom_media}"
 
 def get_view_mode(context):
     return context.user_data.get("view_mode", DEFAULT_VIEW_MODE)
@@ -42,20 +47,18 @@ def adapt_title(title: str, context):
     
     return new_title
 
-DEV_BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
-WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
-WEBAPP_URL_STEPIK="https://stepik.org/lesson/"
-
-
-#WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/TsQAJHvj?id_recovery={video_code}"
-
 def build_video_url(current_node: Any, context) -> str:
     boom_media = current_node.get("boom_media", "")
     
-    boom_password = context.user_data.get("boom_password", "default_password")
-    WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/{boom_media}?id_recovery={boom_password}"
-    webapp_url = WEBAPP_URL_TEMPLATE.format(boom_media=boom_media, 
-                                            boom_password=boom_password)
+    boom_password = context.user_data.get("boom_password", "")
+    
+    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "i7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
+
+    if boom_media in list_media_no_pass:
+        webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
+    else:
+        webapp_url = WEBAPP_URL_TEMPLATE.format(boom_media=boom_media, 
+                                                boom_password=boom_password)
     return webapp_url
 
 
