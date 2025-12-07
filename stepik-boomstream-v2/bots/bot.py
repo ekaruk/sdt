@@ -1,4 +1,3 @@
-
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -12,6 +11,7 @@ from telegram.ext import (
     ContextTypes,
 )
 from datetime import datetime
+from typing import Any
 
 from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
