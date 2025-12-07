@@ -62,7 +62,7 @@ class StepikLesson(Base):
 class TelegramUser(Base):
     __tablename__ = "telegram_users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(BigInteger, primary_key=True, index=True)
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     username = Column(String, nullable=True)

@@ -7,6 +7,7 @@ from contextlib import contextmanager
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.engine import Engine
+from sqlalchemy import DateTime, Date, Time, Integer, BigInteger
 
 #"Использование:\n"
 #              $env:DATABASE_URL = "sqlite:///local.db"
@@ -63,8 +64,6 @@ def deserialize_value(column, value):
     Convert JSON-loaded values back into Python objects expected by SQLAlchemy
     for DateTime/Date/Time columns.
     """
-    from sqlalchemy import DateTime, Date, Time
-
     if value is None:
         return None
 
@@ -75,6 +74,15 @@ def deserialize_value(column, value):
         return datetime.date.fromisoformat(value)
     if isinstance(col_type, Time):
         return datetime.time.fromisoformat(value)
+    
+    # ЧИСЛА (Integer / BigInteger)
+    if isinstance(col_type, (Integer, BigInteger)):
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        if isinstance(value, str):
+            return int(value)
+        return value
+    
     return value
 
 
