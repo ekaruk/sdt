@@ -137,12 +137,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error_text = None
     if not user:
         # НЕТ пользователя с таким telegram_id → считаем неавторизованным
-        error_text = "У вас нет доступа к боту."
+        error_text = f"У вас нет доступа к боту. Telegram ID: {tg_id}"
     elif not user.boom_password:
         error_text = f"Здравствуйте {user.first_name} {user.last_name}!\n" \
                       "Извините, у Вас пока нет доступа к видео." \
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
-                      "И сообщите ваш Telegram ID: " + tg_id
+                      f"И сообщите ваш Telegram ID: {tg_id}" 
     else:
         context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
         context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
