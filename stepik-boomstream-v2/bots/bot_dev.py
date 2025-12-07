@@ -116,24 +116,6 @@ def build_menu_keyboard(node_id: str, context) -> InlineKeyboardMarkup:
         
         keyboard.append([keyboard_button])
 
-#    parent_id = node.get("parent")
-#    # Нижняя строка: Назад (если есть) + Обновить
-#    bottom_row: list[InlineKeyboardButton] = []
-#
-#    if parent_id is not None:
-#        bottom_row.append(
-#            InlineKeyboardButton(
-#                text="⬅ Назад",
-#                callback_data=f"menu:{parent_id}",
-#            )
-#        )
-#
-#    bottom_row.append(
-#        InlineKeyboardButton(
-#           text="🔄 Обновить",
-#            callback_data=f"refresh:{node_id}",   # важно передать текущий узел
-#        )
-#    )
 
     bottom_row = get_bottom_row(node, context)
     keyboard.append(bottom_row)

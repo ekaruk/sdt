@@ -1,0 +1,1656 @@
+{
+  "stepik_modules": [
+    {
+      "id": 561993,
+      "title": "Раздел 1. Основные энергии",
+      "position": 2
+    },
+    {
+      "id": 564649,
+      "title": "Раздел 3. Оценка здоровья",
+      "position": 4
+    },
+    {
+      "id": 579296,
+      "title": "Раздел 2. Блоки",
+      "position": 3
+    },
+    {
+      "id": 579297,
+      "title": "Раздел 4. Вода",
+      "position": 5
+    },
+    {
+      "id": 611382,
+      "title": "Раздел 5. Воздух",
+      "position": 6
+    },
+    {
+      "id": 611383,
+      "title": "Раздел 6. Солнце",
+      "position": 7
+    }
+  ],
+  "telegram_users": [
+    {
+      "id": 127974702,
+      "first_name": "Флера",
+      "last_name": "Имамиева ШДТ",
+      "username": "flera_imamieva",
+      "phone": "79053736430"
+    },
+    {
+      "id": 316518550,
+      "first_name": "Алексей Бусел",
+      "last_name": "ШДТ",
+      "username": "ahamananta",
+      "phone": null
+    },
+    {
+      "id": 319017895,
+      "first_name": "Александр",
+      "last_name": "Ермаков ШДТ",
+      "username": "Ermakov2022",
+      "phone": null
+    },
+    {
+      "id": 344941721,
+      "first_name": "Alena",
+      "last_name": "Алёна Перфильева ШДТ",
+      "username": "Esileska",
+      "phone": null
+    },
+    {
+      "id": 370601035,
+      "first_name": "Nadya",
+      "last_name": "Lebedeva",
+      "username": "NirmalanandaDD",
+      "phone": null
+    },
+    {
+      "id": 372368842,
+      "first_name": "Katarina",
+      "last_name": null,
+      "username": "Katarina_K_L",
+      "phone": "79250071790"
+    },
+    {
+      "id": 372860738,
+      "first_name": "Aida",
+      "last_name": "Kachaeva",
+      "username": "aidyshk",
+      "phone": null
+    },
+    {
+      "id": 387949010,
+      "first_name": "Maryna",
+      "last_name": "Logvynenko ШДТ",
+      "username": "MLogvynenko",
+      "phone": "380503055016"
+    },
+    {
+      "id": 407655896,
+      "first_name": "Лакшми Нари Дд",
+      "last_name": "(Елена Беспалова) ШДТ",
+      "username": "Lakshminari",
+      "phone": null
+    },
+    {
+      "id": 407679305,
+      "first_name": "Беляев Александр",
+      "last_name": "ШДТ",
+      "username": "aldr_b",
+      "phone": null
+    },
+    {
+      "id": 419423362,
+      "first_name": "Ксения",
+      "last_name": null,
+      "username": "KVallabhi",
+      "phone": null
+    },
+    {
+      "id": 421620938,
+      "first_name": "Вероника",
+      "last_name": null,
+      "username": "Veronika_shevlyuga",
+      "phone": null
+    },
+    {
+      "id": 428840345,
+      "first_name": "Артем",
+      "last_name": "Скачков",
+      "username": "adidas_ccc",
+      "phone": "79002696755"
+    },
+    {
+      "id": 461807062,
+      "first_name": "Александр Контатовский",
+      "last_name": "Минск ШДТ",
+      "username": "gaurangavilasadas",
+      "phone": "375291291999"
+    },
+    {
+      "id": 465136889,
+      "first_name": "Anton",
+      "last_name": "Kachaev ШДТ",
+      "username": "Aradhitahari",
+      "phone": "37255665970"
+    },
+    {
+      "id": 486986085,
+      "first_name": "Janel Бай Жанэл",
+      "last_name": "Safety Insurance Translations",
+      "username": "janelsafety",
+      "phone": null
+    },
+    {
+      "id": 513506318,
+      "first_name": "Эльдар Гарагашев ШДТ",
+      "last_name": null,
+      "username": "eldar_garagashev",
+      "phone": null
+    },
+    {
+      "id": 515608099,
+      "first_name": "Yevheniia",
+      "last_name": "Karuk",
+      "username": "ekaruk",
+      "phone": "380664095959"
+    },
+    {
+      "id": 534578684,
+      "first_name": "Оксана",
+      "last_name": "Павлишина ШДТ",
+      "username": null,
+      "phone": null
+    },
+    {
+      "id": 595671709,
+      "first_name": "Алия",
+      "last_name": "Зинкина ШДТ",
+      "username": "aliyazinkina",
+      "phone": null
+    },
+    {
+      "id": 617567580,
+      "first_name": "Ольга",
+      "last_name": "Маткина ШДТ",
+      "username": "MOlyia",
+      "phone": "79631609855"
+    },
+    {
+      "id": 621959802,
+      "first_name": "RaduMarika",
+      "last_name": "Калантарян Рубен ШДТ",
+      "username": "RaduMarika",
+      "phone": null
+    },
+    {
+      "id": 657394948,
+      "first_name": "Sergey",
+      "last_name": "Сергей Явлаш ШДТ",
+      "username": "sergeyrunpray",
+      "phone": null
+    },
+    {
+      "id": 694649095,
+      "first_name": "Носенко Алеся",
+      "last_name": "Владиславовна",
+      "username": "Alesya_1006",
+      "phone": "380931980527"
+    },
+    {
+      "id": 712921470,
+      "first_name": "Владислав",
+      "last_name": "Коробко",
+      "username": "khvkorobko",
+      "phone": null
+    },
+    {
+      "id": 724070170,
+      "first_name": "Айлара",
+      "last_name": "Ашгабад,Туркменистан",
+      "username": "AylaraNurliyeva",
+      "phone": "99365059077"
+    },
+    {
+      "id": 771285767,
+      "first_name": "Julia",
+      "last_name": "Fursova",
+      "username": "julia_fursova",
+      "phone": null
+    },
+    {
+      "id": 783473924,
+      "first_name": "Ольга Король",
+      "last_name": null,
+      "username": "olga_korol_7",
+      "phone": "33622301779"
+    },
+    {
+      "id": 784706320,
+      "first_name": "Евгения",
+      "last_name": "Купрещенкова",
+      "username": "astrojenka",
+      "phone": "79241797857"
+    },
+    {
+      "id": 792976760,
+      "first_name": "Сукумари д.д Снежана Панова",
+      "last_name": "ШДТ",
+      "username": "sukumaridasi",
+      "phone": "79173958107"
+    },
+    {
+      "id": 831257683,
+      "first_name": "Кымбат",
+      "last_name": "Сейдек Туркеева ШДТ",
+      "username": "kim_fit",
+      "phone": null
+    },
+    {
+      "id": 833182296,
+      "first_name": "Малати",
+      "last_name": null,
+      "username": "malatidd",
+      "phone": null
+    },
+    {
+      "id": 850365823,
+      "first_name": "Вероника РАДА 🥰 Кулакова Москва",
+      "last_name": "ШДТ",
+      "username": "KULAKOVA_VERONIKA17",
+      "phone": "79774952955"
+    },
+    {
+      "id": 852106717,
+      "first_name": "Valentina",
+      "last_name": "Shifrin проект перевода лекций Торсунова.",
+      "username": "ValentinaShifrin",
+      "phone": "37068743305"
+    },
+    {
+      "id": 889754266,
+      "first_name": "Юлия",
+      "last_name": "Муранова ШДТ",
+      "username": "YuliiaMuranova",
+      "phone": null
+    },
+    {
+      "id": 945473966,
+      "first_name": "Гульнара Шамсутдинова ШДТ",
+      "last_name": null,
+      "username": "gshamsy",
+      "phone": null
+    },
+    {
+      "id": 964521558,
+      "first_name": "Наталья",
+      "last_name": "Кудрявцева ШДТ",
+      "username": "Natalya_Georgievnaa",
+      "phone": null
+    },
+    {
+      "id": 997867225,
+      "first_name": "Евгения",
+      "last_name": "Абултаева",
+      "username": "Abultayeva_live",
+      "phone": "77479876002"
+    },
+    {
+      "id": 1026671650,
+      "first_name": "Аня Безушко Днепр",
+      "last_name": "ШДТ",
+      "username": null,
+      "phone": null
+    },
+    {
+      "id": 1070290403,
+      "first_name": "Berik",
+      "last_name": "Abultayev ШДТ",
+      "username": "Daoberik",
+      "phone": "77073395843"
+    },
+    {
+      "id": 1086428615,
+      "first_name": "Кирилл",
+      "last_name": "Каменев",
+      "username": "KamenevKirill",
+      "phone": "79243910088"
+    },
+    {
+      "id": 1094236426,
+      "first_name": "Mария",
+      "last_name": "Копылова ШДТ",
+      "username": "maria_pray_love",
+      "phone": "375445762346"
+    },
+    {
+      "id": 1141985587,
+      "first_name": "Александра",
+      "last_name": null,
+      "username": "Sandra_LOG",
+      "phone": "79049895409"
+    },
+    {
+      "id": 1188484136,
+      "first_name": "Альбина Зиннатуллина I Салават",
+      "last_name": null,
+      "username": "anandakishory",
+      "phone": "79899578383"
+    },
+    {
+      "id": 1222190428,
+      "first_name": "Александр",
+      "last_name": "Смагин",
+      "username": "aleps108",
+      "phone": null
+    },
+    {
+      "id": 1238299514,
+      "first_name": "Павлова",
+      "last_name": "Татьяна",
+      "username": "Pavlova_Tatyana_Gennadyevna",
+      "phone": "79277298280"
+    },
+    {
+      "id": 1277580091,
+      "first_name": "Александр",
+      "last_name": "Хомутов",
+      "username": "alexandrhomutov",
+      "phone": null
+    },
+    {
+      "id": 1316105241,
+      "first_name": "Николай",
+      "last_name": "Федотов",
+      "username": "Nikolai_Fedotov",
+      "phone": null
+    },
+    {
+      "id": 1316557293,
+      "first_name": "Инна Фоменко",
+      "last_name": null,
+      "username": "Innalefo",
+      "phone": null
+    },
+    {
+      "id": 1457420050,
+      "first_name": "Елена",
+      "last_name": "Веселова СПб",
+      "username": "yelena_veselova",
+      "phone": null
+    },
+    {
+      "id": 1513348620,
+      "first_name": "Alina",
+      "last_name": "Pälsing ШДТ",
+      "username": "AlinaPal",
+      "phone": null
+    },
+    {
+      "id": 1596541496,
+      "first_name": "Denis Денис Джуля",
+      "last_name": "Dzhulya",
+      "username": "Dzhulya_Denis",
+      "phone": null
+    },
+    {
+      "id": 1648497165,
+      "first_name": "Лиана",
+      "last_name": "Ильина",
+      "username": "Liana_Li45",
+      "phone": null
+    },
+    {
+      "id": 1751098594,
+      "first_name": "Оксана",
+      "last_name": "Ильчанинова ШДТ",
+      "username": "OxanaIlchaninova",
+      "phone": "79279441167"
+    },
+    {
+      "id": 1763326503,
+      "first_name": "Farzad",
+      "last_name": "ШДТ",
+      "username": null,
+      "phone": null
+    },
+    {
+      "id": 1869310333,
+      "first_name": "Вячеслав",
+      "last_name": "Акберов ШДТ",
+      "username": null,
+      "phone": "79003255850"
+    },
+    {
+      "id": 2074702404,
+      "first_name": "Татьяна Новоселова",
+      "last_name": "Сибирь",
+      "username": "TatyanaSiberia_1",
+      "phone": "79503022813"
+    },
+    {
+      "id": 2100225171,
+      "first_name": "Светлана Фогель",
+      "last_name": "Исыккуль",
+      "username": "swvogel",
+      "phone": "491772207380"
+    },
+    {
+      "id": 2125072504,
+      "first_name": "Елена",
+      "last_name": "Александровна Колыванова",
+      "username": "elena1983i",
+      "phone": null
+    },
+    {
+      "id": 2139033529,
+      "first_name": "Ervin",
+      "last_name": "Kiburis ШДТ",
+      "username": "ervikey",
+      "phone": "351928079976"
+    },
+    {
+      "id": 5002311507,
+      "first_name": "Olga Краснова Ольга ШДТ",
+      "last_name": "Krasnova",
+      "username": "Krasnova_Olga12",
+      "phone": "79046672590"
+    },
+    {
+      "id": 5036782553,
+      "first_name": "Олег Меркулин ШДТ",
+      "last_name": null,
+      "username": "OM_merkulin",
+      "phone": null
+    },
+    {
+      "id": 5209671479,
+      "first_name": "Павел",
+      "last_name": "Зинкин Казань",
+      "username": "pavel_zinkin",
+      "phone": "79272465216"
+    },
+    {
+      "id": 5229938323,
+      "first_name": "Ильшат",
+      "last_name": null,
+      "username": null,
+      "phone": null
+    },
+    {
+      "id": 5258283803,
+      "first_name": "Oleksandra",
+      "last_name": "Александра Гердт ШДТ",
+      "username": "oleksandra_herdt",
+      "phone": null
+    },
+    {
+      "id": 5437732885,
+      "first_name": "Edvins",
+      "last_name": null,
+      "username": "edvinzd",
+      "phone": "32456155242"
+    },
+    {
+      "id": 5717575440,
+      "first_name": "Anton",
+      "last_name": "Антон Люлин ШДТ",
+      "username": "faobfe",
+      "phone": null
+    },
+    {
+      "id": 5807886348,
+      "first_name": "Larisa Лариса Гуамбэ",
+      "last_name": "Guambe ШДТ",
+      "username": null,
+      "phone": "258847583608"
+    },
+    {
+      "id": 6294925150,
+      "first_name": "Zhanna Petrash",
+      "last_name": "ШДТ",
+      "username": "zhanna1_sunshine",
+      "phone": "34602824449"
+    },
+    {
+      "id": 6303578724,
+      "first_name": "Светлана",
+      "last_name": "Дарсалия",
+      "username": "svetdar63",
+      "phone": null
+    },
+    {
+      "id": 7257690585,
+      "first_name": "Оксана",
+      "last_name": "Грозина",
+      "username": "oksanagrozina",
+      "phone": "380974753992"
+    },
+    {
+      "id": 7402236499,
+      "first_name": "Евгения",
+      "last_name": "Карук",
+      "username": "YevheniiaKaruk",
+      "phone": "491712143966"
+    },
+    {
+      "id": 7597787939,
+      "first_name": "Ieva",
+      "last_name": "Zdanovica",
+      "username": null,
+      "phone": null
+    }
+  ],
+  "users": [
+    {
+      "id": 2,
+      "email": "test@gmail.com",
+      "first_name": null,
+      "last_name": null,
+      "boom_password": "123456789",
+      "stepik_user_id": null,
+      "telegram_id": "",
+      "google_sub": null,
+      "created_at": "2025-12-04T18:13:52.258828"
+    },
+    {
+      "id": 3,
+      "email": "test@mail.ru",
+      "first_name": null,
+      "last_name": null,
+      "boom_password": "123",
+      "stepik_user_id": null,
+      "telegram_id": null,
+      "google_sub": null,
+      "created_at": "2025-12-04T18:14:26.081871"
+    },
+    {
+      "id": 4,
+      "email": "test2@mail.ru",
+      "first_name": null,
+      "last_name": null,
+      "boom_password": "123",
+      "stepik_user_id": null,
+      "telegram_id": null,
+      "google_sub": null,
+      "created_at": "2025-12-04T19:06:40.548990"
+    },
+    {
+      "id": 5,
+      "email": "ramdasadasa@gmail.com",
+      "first_name": "Алексей",
+      "last_name": "Попов",
+      "boom_password": "112374545",
+      "stepik_user_id": null,
+      "telegram_id": null,
+      "google_sub": null,
+      "created_at": "2025-12-04T19:28:52.385425"
+    },
+    {
+      "id": 6,
+      "email": "ka4ik88@gmail.com",
+      "first_name": "Антон",
+      "last_name": "Качаев",
+      "boom_password": "308502337",
+      "stepik_user_id": null,
+      "telegram_id": 465136889,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215660"
+    },
+    {
+      "id": 7,
+      "email": "ekaruk@gmail.com",
+      "first_name": "Евгения",
+      "last_name": "Карук",
+      "boom_password": "238849376",
+      "stepik_user_id": null,
+      "telegram_id": 515608099,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215665"
+    },
+    {
+      "id": 8,
+      "email": "smariga@mail.ru",
+      "first_name": "Евгения",
+      "last_name": "Купрещенкова",
+      "boom_password": "308617280",
+      "stepik_user_id": null,
+      "telegram_id": 784706320,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215668"
+    },
+    {
+      "id": 9,
+      "email": "buselalex@gmail.com",
+      "first_name": "Алексей",
+      "last_name": "Бусел",
+      "boom_password": "946117006",
+      "stepik_user_id": null,
+      "telegram_id": 316518550,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215670"
+    },
+    {
+      "id": 10,
+      "email": "denis.dzhulya@mail.ru",
+      "first_name": "Денис",
+      "last_name": "Джуля",
+      "boom_password": "439166414",
+      "stepik_user_id": null,
+      "telegram_id": 1596541496,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215672"
+    },
+    {
+      "id": 11,
+      "email": "swetikvogel@web.de",
+      "first_name": "Светлана",
+      "last_name": "Фогель",
+      "boom_password": "509232928",
+      "stepik_user_id": null,
+      "telegram_id": 2100225171,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215674"
+    },
+    {
+      "id": 12,
+      "email": "oleksandra.herdt@gmail.com",
+      "first_name": "Александра",
+      "last_name": "Гердт",
+      "boom_password": "448816826",
+      "stepik_user_id": null,
+      "telegram_id": 5258283803,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215676"
+    },
+    {
+      "id": 13,
+      "email": "daoberik@gmail.com",
+      "first_name": "Abultayev",
+      "last_name": "Berik",
+      "boom_password": "289439528",
+      "stepik_user_id": null,
+      "telegram_id": 1070290403,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215677"
+    },
+    {
+      "id": 14,
+      "email": "revival600@gmail.com",
+      "first_name": "Евгения",
+      "last_name": "Абултаева",
+      "boom_password": "056435911",
+      "stepik_user_id": null,
+      "telegram_id": 997867225,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215679"
+    },
+    {
+      "id": 15,
+      "email": "farzadmehtilu@gmail.com",
+      "first_name": "Фарзад",
+      "last_name": "Mehtilu",
+      "boom_password": "165871740",
+      "stepik_user_id": null,
+      "telegram_id": 1763326503,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215681"
+    },
+    {
+      "id": 16,
+      "email": "proyavlenost@gmail.com",
+      "first_name": "Ervin",
+      "last_name": "Kiburis",
+      "boom_password": "933688123",
+      "stepik_user_id": null,
+      "telegram_id": 1117533214,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215683"
+    },
+    {
+      "id": 17,
+      "email": "marynalogvynenko@gmail.com",
+      "first_name": "Марина",
+      "last_name": "Логвиненко",
+      "boom_password": "188981525",
+      "stepik_user_id": null,
+      "telegram_id": 177014925,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215685"
+    },
+    {
+      "id": 18,
+      "email": "hs.jeanne@yahoo.com",
+      "first_name": "Zhanna",
+      "last_name": "Petrash",
+      "boom_password": "056270992",
+      "stepik_user_id": null,
+      "telegram_id": 151246392,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215688"
+    },
+    {
+      "id": 19,
+      "email": "molyia@mail.ru",
+      "first_name": "Ольга",
+      "last_name": "Маткина",
+      "boom_password": "946230701",
+      "stepik_user_id": null,
+      "telegram_id": 557361619,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215690"
+    },
+    {
+      "id": 20,
+      "email": "marykopylova@list.ru",
+      "first_name": "Мария",
+      "last_name": "Копылова",
+      "boom_password": "244929927",
+      "stepik_user_id": null,
+      "telegram_id": 1566727369,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215692"
+    },
+    {
+      "id": 21,
+      "email": "kim.seidek@gmail.com",
+      "first_name": "Кымбат",
+      "last_name": "Сейдев",
+      "boom_password": "420789079",
+      "stepik_user_id": null,
+      "telegram_id": 1804080861,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215694"
+    },
+    {
+      "id": 22,
+      "email": "flera.imamieva@gmail.com",
+      "first_name": "Флера",
+      "last_name": "Имамиева",
+      "boom_password": "165140477",
+      "stepik_user_id": null,
+      "telegram_id": 1269725425,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215696"
+    },
+    {
+      "id": 23,
+      "email": "edrrt@inbox.ru",
+      "first_name": "Кирилл",
+      "last_name": "Каменев",
+      "boom_password": "933975537",
+      "stepik_user_id": null,
+      "telegram_id": 6053629921,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215700"
+    },
+    {
+      "id": 24,
+      "email": "svetdar@mail.ru",
+      "first_name": "Светлана",
+      "last_name": "Дарсалия",
+      "boom_password": "888575454",
+      "stepik_user_id": null,
+      "telegram_id": 5426592602,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215702"
+    },
+    {
+      "id": 25,
+      "email": "okguilpain@outlook.com",
+      "first_name": "Ольга",
+      "last_name": "Король",
+      "boom_password": "822420684",
+      "stepik_user_id": null,
+      "telegram_id": 1356598109,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215704"
+    },
+    {
+      "id": 26,
+      "email": "khv.korobko@gmail.com",
+      "first_name": "Владислав",
+      "last_name": "Коробко",
+      "boom_password": "654777799",
+      "stepik_user_id": null,
+      "telegram_id": 1458887104,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215706"
+    },
+    {
+      "id": 27,
+      "email": "mikada@mail.ru",
+      "first_name": "Кудрявцева",
+      "last_name": "Наталья",
+      "boom_password": "019391449",
+      "stepik_user_id": null,
+      "telegram_id": 5426714072,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215708"
+    },
+    {
+      "id": 28,
+      "email": "rezka2013@bk.ru",
+      "first_name": "Александр",
+      "last_name": "Ермаков",
+      "boom_password": "090347099",
+      "stepik_user_id": null,
+      "telegram_id": 1824979872,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215710"
+    },
+    {
+      "id": 29,
+      "email": "elena_aktau@inbox.ru",
+      "first_name": "Елена",
+      "last_name": "Беспалова",
+      "boom_password": "481402048",
+      "stepik_user_id": null,
+      "telegram_id": 1117082658,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215712"
+    },
+    {
+      "id": 30,
+      "email": "zinkin.pasha@yandex.ru",
+      "first_name": "Павел",
+      "last_name": "Зынкин",
+      "boom_password": "553354136",
+      "stepik_user_id": null,
+      "telegram_id": 5991457866,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215714"
+    },
+    {
+      "id": 31,
+      "email": "larisavgg77@gmail.com",
+      "first_name": "Лариса",
+      "last_name": "Гуамбэ",
+      "boom_password": "792835915",
+      "stepik_user_id": null,
+      "telegram_id": 541183443,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215715"
+    },
+    {
+      "id": 32,
+      "email": "vilasisi1972@gmail.com",
+      "first_name": "Вячеслав",
+      "last_name": "Акбаров",
+      "boom_password": "885617506",
+      "stepik_user_id": null,
+      "telegram_id": 1379644200,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215717"
+    },
+    {
+      "id": 33,
+      "email": "parafin4ik87@yandex.ru",
+      "first_name": "Александр",
+      "last_name": "Хомутов",
+      "boom_password": "200186441",
+      "stepik_user_id": null,
+      "telegram_id": 186503367,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215719"
+    },
+    {
+      "id": 34,
+      "email": "yenova.marina@gmail.com",
+      "first_name": "Малати",
+      "last_name": null,
+      "boom_password": "404362295",
+      "stepik_user_id": null,
+      "telegram_id": 789653699,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215721"
+    },
+    {
+      "id": 35,
+      "email": "fedotov_massage@mail.ru",
+      "first_name": "Николай",
+      "last_name": "Федотов",
+      "boom_password": "651356520",
+      "stepik_user_id": null,
+      "telegram_id": 5284963666,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215723"
+    },
+    {
+      "id": 36,
+      "email": "volkovatg163@mail.ru",
+      "first_name": "Татьяна",
+      "last_name": "Павлова",
+      "boom_password": "991144841",
+      "stepik_user_id": null,
+      "telegram_id": 853601462,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215725"
+    },
+    {
+      "id": 37,
+      "email": "neuronalt@yandex.ru",
+      "first_name": "Юлия",
+      "last_name": "Фурсова",
+      "boom_password": "131511916",
+      "stepik_user_id": null,
+      "telegram_id": 734347547,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215726"
+    },
+    {
+      "id": 38,
+      "email": "o.merkulin@yandex.ru",
+      "first_name": "Олег",
+      "last_name": "Меркулин",
+      "boom_password": "275548890",
+      "stepik_user_id": null,
+      "telegram_id": 883931620,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215728"
+    },
+    {
+      "id": 39,
+      "email": "janelbay2019@gmail.com",
+      "first_name": "Бай",
+      "last_name": "Жанэл",
+      "boom_password": "727119025",
+      "stepik_user_id": null,
+      "telegram_id": 5097799624,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215730"
+    },
+    {
+      "id": 40,
+      "email": "tatnov32@yandex.ru",
+      "first_name": "Татьяна",
+      "last_name": "Новоселова",
+      "boom_password": "714142325",
+      "stepik_user_id": null,
+      "telegram_id": 1236092511,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215732"
+    },
+    {
+      "id": 41,
+      "email": "pavlishina90@mail.ru",
+      "first_name": "Оксана",
+      "last_name": "Павлишина",
+      "boom_password": "582083267",
+      "stepik_user_id": null,
+      "telegram_id": 1119685118,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215734"
+    },
+    {
+      "id": 42,
+      "email": "alinapalsing@gmail.com",
+      "first_name": "Alina",
+      "last_name": "Pälsing",
+      "boom_password": "111251293",
+      "stepik_user_id": null,
+      "telegram_id": 1320076751,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215736"
+    },
+    {
+      "id": 43,
+      "email": "yavlash79@gmail.com",
+      "first_name": "Явлаш",
+      "last_name": "Сергей",
+      "boom_password": "663237692",
+      "stepik_user_id": null,
+      "telegram_id": 6018788693,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215737"
+    },
+    {
+      "id": 44,
+      "email": "veronika.podkalyuk@yandex.ru",
+      "first_name": "Вероника",
+      "last_name": "Шевченко",
+      "boom_password": "293642699",
+      "stepik_user_id": null,
+      "telegram_id": 1357929996,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215739"
+    },
+    {
+      "id": 45,
+      "email": "kvoznyuk@yahoo.co.uk",
+      "first_name": "Ксения",
+      "last_name": "Вознюк",
+      "boom_password": "860841269",
+      "stepik_user_id": null,
+      "telegram_id": 1117099569,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215741"
+    },
+    {
+      "id": 46,
+      "email": "liana.nikitina45@mail.ru",
+      "first_name": "Лиана",
+      "last_name": "Ильина",
+      "boom_password": "272802190",
+      "stepik_user_id": null,
+      "telegram_id": 1636483953,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215743"
+    },
+    {
+      "id": 47,
+      "email": "helenochka1983@mail.ru",
+      "first_name": "Елена",
+      "last_name": "Колыванова",
+      "boom_password": "182605202",
+      "stepik_user_id": null,
+      "telegram_id": 331741947,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215745"
+    },
+    {
+      "id": 48,
+      "email": "kelmanele@yandex.ru",
+      "first_name": "Алёна",
+      "last_name": "Перфильева",
+      "boom_password": "883851710",
+      "stepik_user_id": null,
+      "telegram_id": 960430454,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215746"
+    },
+    {
+      "id": 49,
+      "email": "antone_96@mail.ru",
+      "first_name": "Антон",
+      "last_name": "Люлин",
+      "boom_password": "124215710",
+      "stepik_user_id": null,
+      "telegram_id": 5183432610,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215748"
+    },
+    {
+      "id": 50,
+      "email": "kotimokin@mail.ru",
+      "first_name": "Вероника",
+      "last_name": "Кулакова",
+      "boom_password": "153497347",
+      "stepik_user_id": null,
+      "telegram_id": 6030462283,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215750"
+    },
+    {
+      "id": 51,
+      "email": "kabitskaya@gmail.com",
+      "first_name": "Кабицкая",
+      "last_name": "Катарина",
+      "boom_password": "934418167",
+      "stepik_user_id": null,
+      "telegram_id": 1843134416,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215752"
+    },
+    {
+      "id": 52,
+      "email": "eldarterpimov@gmail.com",
+      "first_name": "Эльдар",
+      "last_name": "Гарадашев",
+      "boom_password": "783233616",
+      "stepik_user_id": null,
+      "telegram_id": 345743708,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215754"
+    },
+    {
+      "id": 53,
+      "email": "masterkos1725@mail.ru",
+      "first_name": "Снежана",
+      "last_name": "Панова",
+      "boom_password": "005241650",
+      "stepik_user_id": null,
+      "telegram_id": 967427186,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215756"
+    },
+    {
+      "id": 54,
+      "email": "anibezushko@gmail.com",
+      "first_name": "Аня",
+      "last_name": "Безушко",
+      "boom_password": "958911917",
+      "stepik_user_id": null,
+      "telegram_id": 1085211428,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215757"
+    },
+    {
+      "id": 55,
+      "email": "skachkov44@gmail.com",
+      "first_name": "Артём",
+      "last_name": "Скачков",
+      "boom_password": "849368415",
+      "stepik_user_id": null,
+      "telegram_id": 981038849,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215759"
+    },
+    {
+      "id": 56,
+      "email": "oksanagrozina3@gmail.com",
+      "first_name": "Оксана",
+      "last_name": "Грозина",
+      "boom_password": "975937275",
+      "stepik_user_id": null,
+      "telegram_id": 5709925625,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215761"
+    },
+    {
+      "id": 57,
+      "email": "aichka.n@gmail.com",
+      "first_name": "Айдара",
+      "last_name": "Ашгабат",
+      "boom_password": "185177469",
+      "stepik_user_id": null,
+      "telegram_id": 1386897016,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215763"
+    },
+    {
+      "id": 58,
+      "email": "helen_the_excellent@mail.ru",
+      "first_name": "Елена",
+      "last_name": "Веселова",
+      "boom_password": "150936867",
+      "stepik_user_id": null,
+      "telegram_id": 826788611,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215765"
+    },
+    {
+      "id": 59,
+      "email": "1112nasyrtdinova@gmail.com",
+      "first_name": "Алия",
+      "last_name": "Зинкина",
+      "boom_password": "156946579",
+      "stepik_user_id": null,
+      "telegram_id": 5432307817,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215766"
+    },
+    {
+      "id": 60,
+      "email": "iloxana@mail.ru",
+      "first_name": "Оксана",
+      "last_name": "Ильчанинова",
+      "boom_password": "138776649",
+      "stepik_user_id": null,
+      "telegram_id": 6057759479,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215768"
+    },
+    {
+      "id": 61,
+      "email": "alesya1006@gmail.com",
+      "first_name": "Алеся",
+      "last_name": "Носенко",
+      "boom_password": "389809785",
+      "stepik_user_id": null,
+      "telegram_id": 1306854985,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215770"
+    },
+    {
+      "id": 62,
+      "email": "adja92@mail.ru",
+      "first_name": "Надежда",
+      "last_name": "Лебедева",
+      "boom_password": "274095357",
+      "stepik_user_id": null,
+      "telegram_id": 1139940396,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215772"
+    },
+    {
+      "id": 63,
+      "email": "hasinman@mail.ru",
+      "first_name": "Логинова",
+      "last_name": "Александра",
+      "boom_password": "687963206",
+      "stepik_user_id": null,
+      "telegram_id": 1254258502,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215774"
+    },
+    {
+      "id": 64,
+      "email": "mosko2010@mail.ru",
+      "first_name": "Гульнара",
+      "last_name": "Шамсутдинова",
+      "boom_password": "250543592",
+      "stepik_user_id": null,
+      "telegram_id": 5449653957,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215776"
+    },
+    {
+      "id": 65,
+      "email": "ymuranova78@gmail.com",
+      "first_name": "Юлия",
+      "last_name": "Муранова",
+      "boom_password": "845454349",
+      "stepik_user_id": null,
+      "telegram_id": 1504570552,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215777"
+    },
+    {
+      "id": 66,
+      "email": "multimillioner@inbox.ru",
+      "first_name": "Альбина",
+      "last_name": "Зиннатуллина",
+      "boom_password": "777700833",
+      "stepik_user_id": null,
+      "telegram_id": 180849850,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215781"
+    },
+    {
+      "id": 67,
+      "email": "aleps108@mail.ru",
+      "first_name": "Александр",
+      "last_name": "Смагин",
+      "boom_password": "170673343",
+      "stepik_user_id": null,
+      "telegram_id": 1362464570,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215783"
+    },
+    {
+      "id": 68,
+      "email": "shikamaru09@mail.ru",
+      "first_name": "Ильшат",
+      "last_name": "Сакаев",
+      "boom_password": "857270644",
+      "stepik_user_id": null,
+      "telegram_id": 1111504284,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215785"
+    },
+    {
+      "id": 69,
+      "email": "fomenko.inna.1@mail.ru",
+      "first_name": "Инна",
+      "last_name": "Фоменко",
+      "boom_password": "670430623",
+      "stepik_user_id": null,
+      "telegram_id": 1806943050,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215786"
+    },
+    {
+      "id": 70,
+      "email": "ion.by.108@gmail.com",
+      "first_name": "Александр",
+      "last_name": "Беляев",
+      "boom_password": "127633951",
+      "stepik_user_id": null,
+      "telegram_id": 1109005662,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215788"
+    },
+    {
+      "id": 71,
+      "email": "happyvalentina@gmail.com",
+      "first_name": "Валентина",
+      "last_name": "Шифрин",
+      "boom_password": "801453398",
+      "stepik_user_id": null,
+      "telegram_id": 1194823062,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215790"
+    },
+    {
+      "id": 72,
+      "email": "zdanovics.edvins@gmail.com",
+      "first_name": "Эдвин",
+      "last_name": "Жданович",
+      "boom_password": "326679293",
+      "stepik_user_id": null,
+      "telegram_id": 1405851929,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215792"
+    },
+    {
+      "id": 73,
+      "email": "eva.zdanovica@gmail.com",
+      "first_name": "Иева",
+      "last_name": "Ждановича",
+      "boom_password": "521654367",
+      "stepik_user_id": null,
+      "telegram_id": 1134506939,
+      "google_sub": null,
+      "created_at": "2025-12-06T14:01:57.215794"
+    },
+    {
+      "id": 74,
+      "email": "test_676352917435@gmail.com",
+      "first_name": null,
+      "last_name": null,
+      "boom_password": "025903191",
+      "stepik_user_id": null,
+      "telegram_id": 1079129539,
+      "google_sub": null,
+      "created_at": "2025-12-06T19:45:06.425526"
+    }
+  ],
+  "stepik_lessons": [
+    {
+      "id": 1852230,
+      "module_id": 579296,
+      "title": "Урок 11. Психические слои. Их структура.",
+      "position": 1,
+      "boom_media": "HOP3CJoH"
+    },
+    {
+      "id": 1855602,
+      "module_id": 579296,
+      "title": "Урок 12. Психические слои. Их функции в психическом теле.",
+      "position": 2,
+      "boom_media": "TsQAJHvj"
+    },
+    {
+      "id": 1855603,
+      "module_id": 561993,
+      "title": "Урок 3. Основные энергии  ",
+      "position": 3,
+      "boom_media": "MbFb5tN1"
+    },
+    {
+      "id": 1855604,
+      "module_id": 579296,
+      "title": "Урок 14. Прана. Её движение в организме.",
+      "position": 4,
+      "boom_media": "F5o9chEj"
+    },
+    {
+      "id": 1855605,
+      "module_id": 579296,
+      "title": "Урок 15. Блоки на глубоких слоях",
+      "position": 5,
+      "boom_media": "AHrL2wFt"
+    },
+    {
+      "id": 1855606,
+      "module_id": 579296,
+      "title": "Урок 16. Блоки и их комбинации на разных слоях",
+      "position": 6,
+      "boom_media": "YU0vTF2U"
+    },
+    {
+      "id": 1855607,
+      "module_id": 579296,
+      "title": "Урок 17. Влияние нехватки энергии на физическое тело.",
+      "position": 7,
+      "boom_media": "MVlmHd06"
+    },
+    {
+      "id": 1855610,
+      "module_id": 579296,
+      "title": "Урок 18. Формирование болезней и блоков",
+      "position": 8,
+      "boom_media": "tENqqymJ"
+    },
+    {
+      "id": 1855854,
+      "module_id": 561993,
+      "title": "Урок 1. Основные желания человека",
+      "position": 1,
+      "boom_media": "RPBloIDb"
+    },
+    {
+      "id": 1855928,
+      "module_id": 561993,
+      "title": "Урок 2. Психическое тело",
+      "position": 2,
+      "boom_media": "kLQR8Fv0"
+    },
+    {
+      "id": 1855949,
+      "module_id": 561993,
+      "title": "Урок 10. Психические каналы: Шротосы и Нади",
+      "position": 10,
+      "boom_media": "NiSTJuTe"
+    },
+    {
+      "id": 1859588,
+      "module_id": 579296,
+      "title": "Урок 13. Блоки. Как они возникают и как влияют на человека.",
+      "position": 3,
+      "boom_media": "OgnYDhGG"
+    },
+    {
+      "id": 1859608,
+      "module_id": 561993,
+      "title": "Урок 4. Хронические состояния нехватки энергии",
+      "position": 4,
+      "boom_media": "ShjjOBN0"
+    },
+    {
+      "id": 1859616,
+      "module_id": 561993,
+      "title": "Урок 5. Виды перенапряжения",
+      "position": 5,
+      "boom_media": "7VdpkZ48"
+    },
+    {
+      "id": 1859687,
+      "module_id": 561993,
+      "title": "Урок 6. Иллюзии",
+      "position": 6,
+      "boom_media": "1RUjKEKI"
+    },
+    {
+      "id": 1859707,
+      "module_id": 561993,
+      "title": "Урок 7. О красоте, влиянии, бесплодии",
+      "position": 7,
+      "boom_media": "NNh807eh"
+    },
+    {
+      "id": 1859709,
+      "module_id": 561993,
+      "title": "Урок 8. Психическое напряжение. Как и где оно скапливается?",
+      "position": 8,
+      "boom_media": "jlJpTeI9"
+    },
+    {
+      "id": 1860433,
+      "module_id": 561993,
+      "title": "Урок 9. Взаимодействие физического и психического тела",
+      "position": 9,
+      "boom_media": "5o7twHCd"
+    },
+    {
+      "id": 1863095,
+      "module_id": 579296,
+      "title": "Урок 19. Виды и правила очищения организма",
+      "position": 9,
+      "boom_media": "5ZVkGXXq"
+    },
+    {
+      "id": 1863098,
+      "module_id": 579296,
+      "title": "Урок 20. Проблемы при нарушении правил очищения организма.",
+      "position": 10,
+      "boom_media": "Bb1aCbln"
+    },
+    {
+      "id": 1885348,
+      "module_id": 564649,
+      "title": "Урок 21. Оценка состояния организма",
+      "position": 1,
+      "boom_media": "EqFdNV9z"
+    },
+    {
+      "id": 1885349,
+      "module_id": 564649,
+      "title": "Урок 22. Категории здоровья человека",
+      "position": 2,
+      "boom_media": "7z2cBgkI"
+    },
+    {
+      "id": 1885350,
+      "module_id": 564649,
+      "title": "Урок 23. Первая категория здоровья",
+      "position": 3,
+      "boom_media": "eVgCuqvj"
+    },
+    {
+      "id": 1885351,
+      "module_id": 564649,
+      "title": "Урок 24. Вторая категория здоровья",
+      "position": 4,
+      "boom_media": "NHxWvmLA"
+    },
+    {
+      "id": 1885352,
+      "module_id": 564649,
+      "title": "Урок 25.1 Третья группа здоровья",
+      "position": 5,
+      "boom_media": "vD9nxMhC"
+    },
+    {
+      "id": 1885353,
+      "module_id": 579297,
+      "title": "Урок 26. Наполнение энергией воды",
+      "position": 1,
+      "boom_media": "TogQkAqt"
+    },
+    {
+      "id": 1885354,
+      "module_id": 579297,
+      "title": "Урок 27. Безопасное наполнение энергией воды (часть 1)",
+      "position": 2,
+      "boom_media": "nLXPGtLx"
+    },
+    {
+      "id": 1885355,
+      "module_id": 579297,
+      "title": "Урок 27. Безопасное наполнение энергией воды (часть 2)",
+      "position": 3,
+      "boom_media": "nLXPGtLx"
+    },
+    {
+      "id": 1885356,
+      "module_id": 579297,
+      "title": "Урок 29. Статика",
+      "position": 5,
+      "boom_media": "nuyqQ2oB"
+    },
+    {
+      "id": 1885357,
+      "module_id": 579297,
+      "title": "Урок 28. Статика",
+      "position": 4,
+      "boom_media": "XKtv3BMQ"
+    },
+    {
+      "id": 1885358,
+      "module_id": 611382,
+      "title": "Урок 31. Динамика",
+      "position": 1,
+      "boom_media": "XLXDJTij"
+    },
+    {
+      "id": 1885359,
+      "module_id": 579297,
+      "title": "Урок 30. Деревья",
+      "position": 6,
+      "boom_media": "N5msI2i2"
+    },
+    {
+      "id": 1885360,
+      "module_id": 611383,
+      "title": "Урок 38. Влияние климата",
+      "position": 6,
+      "boom_media": "tQflWCnI"
+    },
+    {
+      "id": 1894064,
+      "module_id": 611383,
+      "title": "Урок 37. Практика Бани/Сауны/Хамам",
+      "position": 4,
+      "boom_media": "iEQxZh66"
+    },
+    {
+      "id": 1894072,
+      "module_id": 611383,
+      "title": "Урок 36. Наполнение Солнцем на открытом солнце",
+      "position": 3,
+      "boom_media": "z3pkrnrV"
+    },
+    {
+      "id": 1894073,
+      "module_id": 611383,
+      "title": "Урок 35. Посты",
+      "position": 1,
+      "boom_media": "mzXA24aW"
+    },
+    {
+      "id": 1894153,
+      "module_id": 611382,
+      "title": "Урок 34. Пассивное очищение Воздухом. Пост.",
+      "position": 4,
+      "boom_media": "XfrS1IHb"
+    },
+    {
+      "id": 1910031,
+      "module_id": 564649,
+      "title": "Урок 25.2 Четвёртая категория здоровья",
+      "position": 6,
+      "boom_media": "M58qDPJR"
+    },
+    {
+      "id": 1952694,
+      "module_id": 611382,
+      "title": "Урок 32. Динамика",
+      "position": 2,
+      "boom_media": "OkMlH4xa"
+    },
+    {
+      "id": 1965317,
+      "module_id": 611382,
+      "title": "Урок 33 Динамика",
+      "position": 3,
+      "boom_media": "7G7MSGkL"
+    },
+    {
+      "id": 1987236,
+      "module_id": 611383,
+      "title": "Урок 35. Посты (часть 2)",
+      "position": 2,
+      "boom_media": "mzXA24aW"
+    },
+    {
+      "id": 2002495,
+      "module_id": 611383,
+      "title": "Урок 37. Практика Бани/Сауны/Хамам (часть2)",
+      "position": 5,
+      "boom_media": "iEQxZh66"
+    },
+    {
+      "id": 2036585,
+      "module_id": 611383,
+      "title": "Урок 39. Внутренние особенности человека",
+      "position": 7,
+      "boom_media": "rk24MtDp"
+    }
+  ],
+  "video_grants": []
+}
