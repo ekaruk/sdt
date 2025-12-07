@@ -1,0 +1,214 @@
+{
+    "meta": {
+        "page": 1,
+        "has_next": false,
+        "has_previous": false
+    },
+    "courses": [
+        {
+            "id": 247644,
+            "summary": "Курс предназначен для людей, практикующих систему здорового образа жизни, рекомендуемую Торсуновым Олегом Геннадьевичем.\nСодержит набор тестов для проверки своего понимания системы ЗОЖ. \nДанный курс не содержит учебных материалов. Только тесты.\n\n",
+            "workload": "",
+            "cover": "https://cdn.stepik.net/media/cache/images/courses/247644/cover_BDHTw3Z/ba6798487fbb2383b38efd2b46f68bdd.png",
+            "intro": "",
+            "course_format": "",
+            "target_audience": "Курс создан прежде всего для оценки и систематизации с помощью тестов уже имеющихся у Вас знаний.\n\nКурс предназначен для людей, практикующих систему здорового образа жизни, рекомендуемую Торсуновым Олегом Геннадьевичем.\n\n",
+            "certificate_footer": null,
+            "certificate_cover_org": null,
+            "is_certificate_issued": false,
+            "is_certificate_auto_issued": false,
+            "certificate_regular_threshold": null,
+            "certificate_distinction_threshold": null,
+            "instructors": [
+                1101787576
+            ],
+            "certificate": "",
+            "requirements": "<p>Для полноценного изучения теории перед прохождением курса ознакомьтесь с бесплатными лекциями на канале:</p>\n\n<p><a href=\"https://www.youtube.com/@olegtorsunovofficial\" rel=\"noopener noreferrer nofollow\">https://www.youtube.com/@olegtorsunovofficial</a></p>\n\n<p>Материалами на официальном сайте <a href=\"https://torsunov.ru/\" rel=\"noopener noreferrer nofollow\">https://torsunov.ru/</a></p>\n\n<p>Онлайн-лекциями проекта <a href=\"https://blagost.online/\" rel=\"noopener noreferrer nofollow\">https://blagost.online/</a></p>\n\n<p>Также рекомендуем изучить Методическое пособие по эффективному оздоровлению организма, которое можно скачать здесь:</p>\n\n<p><a href=\"https://consultation.torsunov.ru/metodtorsunova\" rel=\"noopener noreferrer nofollow\">https://consultation.torsunov.ru/metodtorsunova</a> </p>\n\n<p>Без ознакомления с этими материалами и без начала самостоятельной практики участие в курсе не имеет смысла. </p>",
+            "description": "<p>Курс предназначен для людей, практикующих систему здорового образа жизни, рекомендуемую Торсуновым Олегом Геннадьевичем.<br>\nСодержит набор тестов для проверки своего понимания системы ЗОЖ. </p>\n\n<p><strong>Данный курс не содержит учебных материалов. Только тесты.</strong></p>\n\n<p>Курс не является обучающим.</p>\n\n<p>Курс создан для оценки и систематизации с помощью тестов уже имеющихся у Вас знаний.</p>",
+            "sections": [
+                561992,
+                561993,
+                579296,
+                564649,
+                579297,
+                611382,
+                611383,
+                615126,
+                563095,
+                619634,
+                617613,
+                619524,
+                562592
+            ],
+            "total_units": 51,
+            "enrollment": null,
+            "is_favorite": false,
+            "actions": {
+                "view_reports": {
+                    "enabled": false,
+                    "needs_permission": "teach"
+                },
+                "edit_reports": {
+                    "enabled": false,
+                    "needs_permission": "teach"
+                },
+                "view_grade_book_page": {
+                    "enabled": false,
+                    "needs_permission": "assist"
+                },
+                "view_grade_book": {
+                    "enabled": false,
+                    "needs_permission": "assist"
+                },
+                "edit_lti": {
+                    "enabled": false,
+                    "needs_permission": "admin"
+                },
+                "edit_advanced_settings": {
+                    "enabled": false,
+                    "needs_permission": "teach"
+                },
+                "manage_permissions": {
+                    "enabled": false,
+                    "needs_permission": "admin"
+                },
+                "view_revenue": {
+                    "enabled": false
+                },
+                "can_be_bought": {
+                    "enabled": true
+                },
+                "can_be_price_changed": {
+                    "enabled": true
+                },
+                "can_be_deleted": {
+                    "enabled": false
+                },
+                "edit_tags": {
+                    "enabled": false
+                }
+            },
+            "progress": null,
+            "first_lesson": 1852228,
+            "first_unit": 1877491,
+            "certificate_link": null,
+            "certificate_regular_link": null,
+            "certificate_distinction_link": null,
+            "user_certificate": null,
+            "referral_link": null,
+            "schedule_link": null,
+            "schedule_long_link": null,
+            "first_deadline": "2025-11-29T21:00:00Z",
+            "last_deadline": "2025-11-29T21:00:00Z",
+            "subscriptions": [
+                "31-78-247644",
+                "30-78-247644"
+            ],
+            "announcements": [],
+            "is_contest": false,
+            "is_self_paced": false,
+            "is_adaptive": false,
+            "is_idea_compatible": false,
+            "is_in_wishlist": false,
+            "last_step": "78-247644",
+            "intro_video": null,
+            "social_providers": [],
+            "authors": [
+                1101787576
+            ],
+            "tags": [
+                248,
+                284
+            ],
+            "has_tutors": false,
+            "is_enabled": true,
+            "is_proctored": false,
+            "proctor_url": null,
+            "review_summary": 247011,
+            "schedule_type": "active",
+            "certificates_count": 0,
+            "learners_count": 148,
+            "lessons_count": 51,
+            "quizzes_count": 539,
+            "challenges_count": 23,
+            "peer_reviews_count": 20,
+            "instructor_reviews_count": 0,
+            "videos_duration": 0,
+            "time_to_complete": 57430,
+            "is_popular": true,
+            "is_processed_with_paddle": false,
+            "is_unsuitable": false,
+            "is_paid": true,
+            "price": "100.00",
+            "currency_code": "RUB",
+            "display_price": "100 ₽",
+            "default_promo_code_name": null,
+            "default_promo_code_price": null,
+            "default_promo_code_discount": null,
+            "default_promo_code_is_percent_discount": null,
+            "default_promo_code_expire_date": null,
+            "continue_url": "/course/247644/continue",
+            "readiness": 0.9090909090909091,
+            "is_archived": false,
+            "options": {},
+            "price_tier": null,
+            "position": 1,
+            "is_censored": false,
+            "difficulty": "hard",
+            "acquired_skills": [],
+            "acquired_assets": [],
+            "learning_format": "<p>Данный курс не содержит учебных материалов. Только тесты.<br>\nКурс создан прежде всего для оценки и систематизации с помощью тестов уже имеющихся у Вас знаний.<br>\n </p>",
+            "content_details": [],
+            "issue": null,
+            "course_type": "basic_paid",
+            "possible_type": null,
+            "is_certificate_with_score": false,
+            "preview_lesson": null,
+            "preview_unit": null,
+            "possible_currencies": [],
+            "commission_basic": null,
+            "commission_promo": null,
+            "with_certificate": false,
+            "child_courses": [],
+            "child_courses_count": 0,
+            "parent_courses": [],
+            "became_published_at": "2025-07-03T16:06:05Z",
+            "became_paid_at": "2025-11-04T13:13:53.732Z",
+            "title_en": "About a healthy lifestyle",
+            "last_update_price_date": "2025-11-04T13:13:53.732Z",
+            "owner": 1101787576,
+            "language": "ru",
+            "is_featured": false,
+            "is_public": true,
+            "canonical_url": "https://stepik.org/course/247644/",
+            "title": "О здоровом образе жизни",
+            "slug": "О-здоровом-образе-жизни-247644",
+            "begin_date": null,
+            "end_date": null,
+            "soft_deadline": null,
+            "hard_deadline": null,
+            "grading_policy": "no_deadlines",
+            "begin_date_source": null,
+            "end_date_source": null,
+            "soft_deadline_source": null,
+            "hard_deadline_source": null,
+            "grading_policy_source": "no_deadlines",
+            "is_active": true,
+            "create_date": "2025-07-02T05:17:18Z",
+            "update_date": "2025-12-04T06:57:10Z",
+            "learners_group": null,
+            "testers_group": null,
+            "moderators_group": null,
+            "assistants_group": null,
+            "teachers_group": null,
+            "admins_group": null,
+            "discussions_count": 0,
+            "discussion_proxy": null,
+            "discussion_threads": [],
+            "lti_consumer_key": "",
+            "lti_secret_key": "",
+            "lti_private_profile": false
+        }
+    ],
+    "enrollments": []
+}

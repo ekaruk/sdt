@@ -9,7 +9,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, nullable=False)
-    # boom_password (9 цифр) можно хранить как строку, если нужно:
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
     boom_password = Column(String(32), nullable=True)
     stepik_user_id = Column(BigInteger, unique=True, nullable=True)
     telegram_id = Column(BigInteger, unique=True, nullable=True)
@@ -17,7 +18,7 @@ class User(Base):
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    grants = relationship("VideoGrant", back_populates="user")
+
 
 
 class VideoGrant(Base):
@@ -29,8 +30,46 @@ class VideoGrant(Base):
     boomstream_resource_id = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User", back_populates="grants")
+    
+class StepikModule(Base):
+    __tablename__ = "stepik_modules"
 
-    __table_args__ = (
-        UniqueConstraint("user_id", "stepik_lesson_id", "boomstream_resource_id"),
-    )
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    position = Column(Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<StepikModule id={self.id} title={self.title}>"
+
+
+class StepikLesson(Base):
+    __tablename__ = "stepik_lessons"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    module_id = Column(Integer, ForeignKey("stepik_modules.id"), nullable=False)
+
+    title = Column(String, nullable=False)
+    position = Column(Integer, nullable=False)
+    boom_media = Column(String, nullable=True)
+
+    # связь: урок принадлежит модулю
+    #module = relationship("StepikModule", back_populates="lessons")
+
+    def __repr__(self):
+        return f"<StepikLesson id={self.id} module={self.module_id} title={self.title}>"    
+
+class TelegramUser(Base):
+    __tablename__ = "telegram_users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    username = Column(String, nullable=True)
+    phone = Column(String, nullable=True)
+
+    def __repr__(self):
+        return (
+            f"<TelegramUser id={self.id} username={self.username} "
+            f"name={self.first_name} {self.last_name}>"
+        )

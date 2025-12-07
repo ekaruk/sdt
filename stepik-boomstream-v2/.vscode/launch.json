@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug: sync_stepik_structure (module)",
+            "type": "python",
+            "request": "launch",
+            "module": "stepik.sync_stepik_structure",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true,
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

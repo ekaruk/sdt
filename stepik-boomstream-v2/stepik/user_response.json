@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "page": 1,
+    "has_next": false,
+    "has_previous": false
+  },
+  "users": [
+    {
+      "id": 39140425,
+      "profile": 39140425,
+      "is_private": false,
+      "is_active": true,
+      "is_guest": false,
+      "is_organization": false,
+      "is_author": false,
+      "short_bio": "",
+      "details": "",
+      "first_name": "Евгения",
+      "last_name": "Карук",
+      "full_name": "Евгения Карук",
+      "alias": null,
+      "avatar": "https://stepik.org/users/39140425/5b3088f1524b4dd515edd5bfc88e11e49ff684c6/avatar.svg",
+      "cover": null,
+      "city": null,
+      "knowledge": 223,
+      "knowledge_rank": 813127,
+      "reputation": 32266,
+      "reputation_rank": 1182,
+      "join_date": "2017-11-28T14:18:57Z",
+      "social_profiles": [],
+      "solved_steps_count": 223,
+      "created_courses_count": 0,
+      "created_lessons_count": 463,
+      "issued_certificates_count": 0,
+      "followers_count": 3
+    }
+  ]
+}
