@@ -152,10 +152,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton(
                 "✉️ Написать администратору",
                 url=f"https://t.me/ekaruk",
-            )
-        ]])
-        await update.message.reply_text(error_text,
-                                        reply_markup=keyboard)
+                )
+            ]])
+        if update.message:
+            await update.message.reply_text(error_text,reply_markup=keyboard)
+        else:
+            await update.callback_query.edit_message_text(error_text,reply_markup=keyboard)
         return
     
     """Команда /start — показываем корень дерева"""
