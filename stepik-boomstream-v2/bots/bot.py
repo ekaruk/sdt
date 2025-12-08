@@ -137,22 +137,25 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     error_text = None
     if not user:
         # НЕТ пользователя с таким telegram_id → считаем неавторизованным
-        error_text = f"У вас нет доступа к боту. Telegram ID: {tg_id}"
+        error_text = f"У вас нет доступа к боту. \n Telegram ID: {tg_user.id}"
     elif not user.boom_password:
-        error_text = f"Здравствуйте {user.first_name} {user.last_name}!\n" \
+        error_text = f"Здравствуйте {tg_user.full_name}!\n" \
                       "Извините, у Вас пока нет доступа к видео." \
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
-                      f"И сообщите ваш Telegram ID: {tg_id}" 
+                      f"И сообщите ваш Telegram ID: {tg_user.id}" 
     else:
         context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
         context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
     
     if error_text:
-        if update.message:
-            await update.message.reply_text(error_text)
-        else:
-            await update.callback_query.edit_message_text(error_text)
-        return
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "✉️ Написать администратору",
+                url=f"https://t.me/ekaruk",
+            )
+        ]])
+        await update.message.reply_text(error_text,
+                                        reply_markup=keyboard)
     
     """Команда /start — показываем корень дерева"""
     await update.message.reply_text(
