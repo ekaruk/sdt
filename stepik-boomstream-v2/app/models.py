@@ -15,7 +15,9 @@ class User(Base):
     stepik_user_id = Column(BigInteger, unique=True, nullable=True)
     telegram_id = Column(BigInteger, unique=True, nullable=True)
     google_sub = Column(String, unique=True, nullable=True)
-
+    video_access = Column(Integer, nullable=True)
+    stepik_lesson_id = Column(Integer, nullable=True)
+    stepik_step_id = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

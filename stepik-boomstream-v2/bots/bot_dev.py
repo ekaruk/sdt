@@ -1,9 +1,26 @@
+import logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    filename="bot.log",
+    filemode="a",
+)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("telegram").setLevel(logging.WARNING)
+logging.getLogger("telegram.bot").setLevel(logging.WARNING)
+logging.getLogger("telegram.ext").setLevel(logging.WARNING)
+
+from typing import Any
+
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     WebAppInfo,
 )
+
+from telegram import User
+
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -34,6 +51,8 @@ WEBAPP_URL_TEMPLATE_WITHOUT_PASS = "https://play.boomstream.com/{boom_media}"
 def get_view_mode(context):
     return context.user_data.get("view_mode", DEFAULT_VIEW_MODE)
 
+
+
 def toggle_view_mode(context):
     current = get_view_mode(context)
     new_mode = "web" if current == "mobile" else "mobile"
@@ -52,7 +71,7 @@ def build_video_url(current_node: Any, context) -> str:
     
     boom_password = context.user_data.get("boom_password", "")
     
-    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "i7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
+    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
 
     if boom_media in list_media_no_pass:
         webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
@@ -125,34 +144,54 @@ def build_menu_keyboard(node_id: str, context) -> InlineKeyboardMarkup:
 
     return InlineKeyboardMarkup(keyboard)
 
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    
+def update_context(update: Update, context) -> User:
     tg_user = update.effective_user
     tg_id = tg_user.id
 
     # 1. Проверяем, есть ли такой пользователь в таблице users
-    user = get_user_by_telegram_id(tg_id)
+    user_db = get_user_by_telegram_id(tg_id)
+    
+    if user_db:
+        context.user_data["tg_id"]   = tg_id
+        context.user_data["user_db"] = user_db
+        context.user_data["user_id"] = user_db.id  # сохраняем ID пользователя в контекст                   
+        context.user_data["boom_password"] = user_db.boom_password  # сохраняем boom_password пользователя в контекст
+
+    return tg_user
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+
+    # 1. Проверяем, есть ли такой пользователь в таблице users
+    tg_user = update_context(update, context)
+    user_db = context.user_data.get("user_db")
+    logging.info(f"START: user_id={tg_user.id}, username={tg_user.username}, name={tg_user.full_name} , user={user_db}")
+
     error_text = None
-    if not user:
+    if not user_db:
         # НЕТ пользователя с таким telegram_id → считаем неавторизованным
-        error_text = f"У вас нет доступа к боту. Telegram ID: {tg_id}"
-    elif not user.boom_password:
-        error_text = f"Здравствуйте {user.first_name} {user.last_name}!\n" \
+        error_text = f"У вас нет доступа к боту. \n Telegram ID: {tg_user.id}"
+        logging.warning(f"ACCESS DENIED: user_id={tg_user.id}")
+    elif not user_db.video_access:
+        logging.warning(f"NO VIDEO ACCESS: user_id={tg_user.id}")
+        error_text = f"Здравствуйте {tg_user.full_name}!\n" \
                       "Извините, у Вас пока нет доступа к видео." \
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
-                      f"И сообщите ваш Telegram ID: {tg_id}" 
-    else:
-        context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
-        context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
+                      f"И сообщите ваш Telegram ID: {tg_user.id}" 
+
+                  
     
     if error_text:
-        if update.message:
-            await update.message.reply_text(error_text)
-        else:
-            await update.callback_query.edit_message_text(error_text)
-        return
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "✉️ Написать администратору",
+                url=f"https://t.me/ekaruk",
+            )
+        ]])
+        await update.message.reply_text(error_text,
+                                        reply_markup=keyboard)
     
+
     """Команда /start — показываем корень дерева"""
     await update.message.reply_text(
         SECTIONS["root"]["title"],
@@ -166,12 +205,15 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data              # ожидаем "menu:<node_id>"
     await query.answer()
 
-    
+    logging.info(f"CALLBACK: user={context.user_data.get("user_id")}, data={data}")
+
     # 1) Обновить текущий узел
     if data.startswith("refresh:"):
 
-        text = SECTIONS["root"]["title"] + f"\n\n(обновлено {datetime.now().strftime('%H:%M:%S')})"
-     
+        tg_user = update_context(update, context)
+
+        text = f"Здравствуйте, {tg_user.full_name}\n"+SECTIONS["root"]["title"] + f"\n\n(обновлено {datetime.now().strftime('%H:%M:%S')})"
+        
         await query.edit_message_text(
                 text=text,
                 reply_markup=build_menu_keyboard("root", context),
