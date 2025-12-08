@@ -8,6 +8,7 @@ node_modules/
 dist/
 backup/
 
+
 # Compiled Java class files
 *.class
 
@@ -53,3 +54,6 @@ Thumbs.db
 
 stepik-boomstream/*
 stepik-boomstream/
+  
+venv/*  
+.venv/*

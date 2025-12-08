@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: voting-web
+    env: python
+    plan: free
+    buildCommand: ""
+    startCommand: "gunicorn web_app:app --preload"
+    envVars:
+      - key: WEBAPP_URL
+        value: https://example.onrender.com/voting
