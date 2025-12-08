@@ -156,6 +156,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]])
         await update.message.reply_text(error_text,
                                         reply_markup=keyboard)
+        return
     
     """Команда /start — показываем корень дерева"""
     await update.message.reply_text(
