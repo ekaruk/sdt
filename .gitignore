@@ -55,5 +55,12 @@ Thumbs.db
 stepik-boomstream/*
 stepik-boomstream/
   
+voting_app/*
+voting_app/
+
+keys/
+
 venv/*  
 .venv/*
+stepik-boomstream-v2/utils/my_user_session.session
+voting_app2/
