@@ -1,4 +1,0 @@
-Flask==3.0.0
-SQLAlchemy==2.0.23
-#psycopg2-binary==2.9.9  # если будешь использовать PostgreSQL
-python-dotenv==1.0.0    # по желанию, если хочешь .env
