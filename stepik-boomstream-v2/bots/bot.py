@@ -138,7 +138,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not user:
         # НЕТ пользователя с таким telegram_id → считаем неавторизованным
         error_text = f"У вас нет доступа к боту. \n Telegram ID: {tg_user.id}"
-    elif not user.boom_password:
+    elif not user.video_access or user.video_access != 1:
         error_text = f"Здравствуйте {tg_user.full_name}!\n" \
                       "Извините, у Вас пока нет доступа к видео." \
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
