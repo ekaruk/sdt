@@ -22,7 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from app.auth import get_user_by_telegram_id
+from app.auth import get_user_by_telegram_id, upsert_telegram_user
 
 DEFAULT_VIEW_MODE = "mobile"
 DEV_BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
@@ -52,7 +52,7 @@ def build_video_url(current_node: Any, context) -> str:
     
     boom_password = context.user_data.get("boom_password", "")
     
-    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "i7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
+    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
 
     if boom_media in list_media_no_pass:
         webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
@@ -131,26 +131,36 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     tg_user = update.effective_user
     tg_id = tg_user.id
 
+    # 0. Всегда сохраняем / обновляем запись о телеграм-пользователе
+    upsert_telegram_user(tg_user)
+
     # 1. Проверяем, есть ли такой пользователь в таблице users
     user = get_user_by_telegram_id(tg_id)
     error_text = None
     if not user:
         # НЕТ пользователя с таким telegram_id → считаем неавторизованным
-        error_text = "У вас нет доступа к боту."
+        error_text = f"У вас нет доступа к боту. \n Telegram ID: {tg_id}"
     elif not user.boom_password:
         error_text = f"Здравствуйте {user.first_name} {user.last_name}!\n" \
                       "Извините, у Вас пока нет доступа к видео." \
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором."\
-                      "И сообщите ваш Telegram ID: " + tg_id
+                      f"И сообщите ваш Telegram ID: {tg_id}" 
     else:
         context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
         context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
     
+    
     if error_text:
+        keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton(
+                "✉️ Написать администратору",
+                url=f"https://t.me/ekaruk",
+                )
+            ]])
         if update.message:
-            await update.message.reply_text(error_text)
+            await update.message.reply_text(error_text,reply_markup=keyboard)
         else:
-            await update.callback_query.edit_message_text(error_text)
+            await update.callback_query.edit_message_text(error_text,reply_markup=keyboard)
         return
     
     """Команда /start — показываем корень дерева"""

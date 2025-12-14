@@ -9,6 +9,15 @@
             "cwd": "${workspaceFolder}",
             "justMyCode": true,
             "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "name": "Debug: fill_stepik_user_ids (module)",
+            "type": "python",
+            "request": "launch",
+            "module": "stepik.fill_stepik_user_ids",
+            "cwd": "${workspaceFolder}",
+            "justMyCode": true,
+            "envFile": "${workspaceFolder}/.env"
         }
     ]
 }

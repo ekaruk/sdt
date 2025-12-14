@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Пользователи курса</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-family: sans-serif;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 4px 8px;
+      font-size: 14px;
+    }
+    th {
+      background: #f3f3f3;
+    }
+    .controls {
+      margin-bottom: 12px;
+    }
+    .controls button {
+      margin-right: 8px;
+    }
+    /* скрываем колонки через классы */
+    .hide {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Пользователи курса</h1>
+
+  <div class="controls">
+    <span>Режим отображения:</span>
+    <button type="button" onclick="setView('combined')">Оба</button>
+    <button type="button" onclick="setView('users')">Только users</button>
+    <button type="button" onclick="setView('telegram')">Только telegram_users</button>
+  </div>
+
+  <table id="users-table">
+    <thead>
+      <tr>
+        <th>user.id</th>
+        <th class="col-users">email</th>
+        <th class="col-users">Имя (user)</th>
+        <th class="col-users">Фамилия (user)</th>
+        <th class="col-users">video_access</th>
+
+        <th>telegram_id</th>
+        <th class="col-tg">Имя (tg)</th>
+        <th class="col-tg">Фамилия (tg)</th>
+        <th class="col-tg">username</th>
+        <th class="col-tg">phone</th>
+
+        <th>Доступ к видео</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user, tg in rows %}
+      <tr>
+        <td>{{ user.id }}</td>
+
+        <!-- users-данные -->
+        <td class="col-users">{{ user.email }}</td>
+        <td class="col-users">{{ user.first_name or '' }}</td>
+        <td class="col-users">{{ user.last_name or '' }}</td>
+        <td class="col-users">{{ user.video_access }}</td>
+
+        <!-- общая точка связи -->
+        <td>
+          {% if user.telegram_id %}
+            {{ user.telegram_id }}
+          {% elif tg %}
+            {{ tg.id }}
+          {% else %}
+            -
+          {% endif %}
+        </td>
+
+        <!-- telegram-данные -->
+        <td class="col-tg">{{ tg.first_name if tg else '' }}</td>
+        <td class="col-tg">{{ tg.last_name if tg else '' }}</td>
+        <td class="col-tg">{{ tg.username if tg else '' }}</td>
+        <td class="col-tg">{{ tg.phone if tg else '' }}</td>
+
+        <!-- кнопки доступа -->
+        <td>
+          <form method="post"
+                action="{{ url_for('admin_bp.set_video_access', user_id=user.id) }}">
+            <button name="action" value="allow"
+                    {% if user.video_access == 1 %}disabled{% endif %}>
+              Дать доступ
+            </button>
+            <button name="action" value="deny"
+                    {% if user.video_access == 0 %}disabled{% endif %}>
+              Запретить
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <script>
+    // начальный режим можно подтянуть с backend, если хочешь:
+    let currentView = "{{ view or 'combined' }}";
+
+    function applyView() {
+      const userCols = document.querySelectorAll('.col-users');
+      const tgCols = document.querySelectorAll('.col-tg');
+
+      if (currentView === 'combined') {
+        userCols.forEach(el => el.classList.remove('hide'));
+        tgCols.forEach(el => el.classList.remove('hide'));
+      } else if (currentView === 'users') {
+        userCols.forEach(el => el.classList.remove('hide'));
+        tgCols.forEach(el => el.classList.add('hide'));
+      } else if (currentView === 'telegram') {
+        userCols.forEach(el => el.classList.add('hide'));
+        tgCols.forEach(el => el.classList.remove('hide'));
+      }
+    }
+
+    function setView(view) {
+      currentView = view;
+      applyView();
+      // Если хочется обновлять URL-параметр, можно дописать history.pushState
+    }
+
+    // применяем текущий режим при загрузке
+    applyView();
+  </script>
+</body>
+</html>

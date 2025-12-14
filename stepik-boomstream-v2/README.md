@@ -96,3 +96,7 @@ python sync_runner.py
 - Cron Job:
   - Build Command: `pip install -r requirements.txt`
   - Start Command: `python sync_runner.py`
+
+  routes
+  https://sdt2025-web.onrender.com/login
+  https://sdt2025-web.onrender.com/admin/users

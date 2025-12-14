@@ -152,6 +152,58 @@ class StepikAPI:
         full_name = users[0]["full_name"]
         return full_name
 
+    def is_exam_passed(
+        self,
+        stepik_user_id: int,
+        lesson_id: int = 2071930,
+        step_position: int = 1,
+        course_id: int = 247644,
+    ) -> bool:
+        """
+        Проверяет, пройден ли шаг урока пользователем в указанном курсе.
+
+        Используется эндпоинт:
+            GET /api/course-grades?user=<user_id>&course=<course_id>
+
+        В ответе берётся:
+            "course-grades"[0]["results"][f"{lesson_id}-{step_position}"]["is_passed"]
+
+        :param stepik_user_id: ID пользователя на Stepik.
+        :param lesson_id: ID урока Stepik (например, 1859688).
+        :param step_position: Позиция шага в уроке (1, 2, 3, ...).
+        :param course_id: ID курса Stepik (по умолчанию 247644).
+        :return: True, если шаг пройден, иначе False.
+        """
+        url = "https://stepik.org/api/course-grades"
+        params = {
+            "user": stepik_user_id,
+            "course": course_id,
+        }
+
+        response = requests.get(url, headers=self._auth_headers(), params=params)
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"Ошибка запроса Stepik API: {response.status_code}, {response.text}"
+            )
+
+        data = response.json()
+        # Опционально сохраняем ответ для отладки
+        self._save_response(data, filename="course_grades_response.json")
+
+        course_grades = data.get("course-grades", [])
+        if not course_grades:
+            # Нет данных по этому курсу/пользователю
+            return False
+
+        results = course_grades[0].get("results", {})
+        key = f"{lesson_id}-{step_position}"
+
+        step_info = results.get(key)
+        if not step_info:
+            # Нет такого урока/шага в результатах — считаем, что не пройден
+            return False
+
+        return bool(step_info.get("is_passed", False))
 
 # ---------------- пример использования ----------------
 if __name__ == "__main__":
