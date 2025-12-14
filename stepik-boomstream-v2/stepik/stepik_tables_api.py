@@ -3,10 +3,15 @@
 import os
 import requests
 from dotenv import load_dotenv
+import sys
+from pathlib import Path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.append(str(PROJECT_ROOT))
 
 from app.db import Base, SessionLocal, engine
 from app.models import StepikModule, StepikLesson
 
+from stepik.stepik_api import StepikAPI
 
 class StepikTablesAPI:
     BASE_URL = "https://stepik.org/api"
@@ -72,7 +77,12 @@ class StepikTablesAPI:
         r.raise_for_status()
         data = r.json()
         return data["lessons"][0]
-
+    def get_lesson_steps(self, lesson_id: int) -> dict:
+        url = f"{self.BASE_URL}/lessons/{lesson_id}"
+        r = requests.get(url, headers=self._auth_headers())
+        r.raise_for_status()
+        data = r.json()
+        return data["lessons"][0]
     # ======== основной метод: заполнение таблиц ========
 
     def sync_course_structure_to_db(

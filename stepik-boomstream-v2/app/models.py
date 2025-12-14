@@ -14,7 +14,7 @@ class User(Base):
     boom_password = Column(String(32), nullable=True)
     stepik_user_id = Column(BigInteger, unique=True, nullable=True)
     telegram_id = Column(BigInteger, unique=True, nullable=True)
-    google_sub = Column(String, unique=True, nullable=True)
+    google_sub = Column(String, nullable=True)
     video_access = Column(Integer, nullable=False, default=0, server_default="0")
     stepik_lesson_id = Column(Integer, nullable=True)
     stepik_step_id = Column(Integer, nullable=True)

@@ -1,6 +1,6 @@
 # app/auth.py
 from app.db import SessionLocal
-from app.models import User
+from app.models import User, TelegramUser
 
 import logging
 logger = logging.getLogger(__name__)

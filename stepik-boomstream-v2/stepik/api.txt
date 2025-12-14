@@ -2,3 +2,15 @@ https://stepik.org/api/courses/247644 - get list of sections
 https://stepik.org/api/sections/56199
 https://stepik.org/api/units/1881160
 https://stepik.org/api/lessons/1855854
+
+в https://stepik.org/api/courses/COURSE_ID получить learners_group;
+далее с использованием learners_group получить список учащихся в https://stepik.org/api/members?group=GROUP_ID.
+
+
+https://stepik.org/api/course-grades?
+user=1156623080   user_id
+course=247644
+
+https://stepik.org/api/course-grades?user={stepik_id}&course=247644
+
+"course-grades"/"results"/"2071930-1"/"is_passed"
