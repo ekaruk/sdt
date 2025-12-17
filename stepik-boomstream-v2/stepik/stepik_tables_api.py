@@ -3,6 +3,8 @@
 import os
 import requests
 from dotenv import load_dotenv
+import logging
+
 import sys
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -12,6 +14,9 @@ from app.db import Base, SessionLocal, engine
 from app.models import StepikModule, StepikLesson
 
 from stepik.stepik_api import StepikAPI
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class StepikTablesAPI:
     BASE_URL = "https://stepik.org/api"
@@ -78,11 +83,11 @@ class StepikTablesAPI:
         data = r.json()
         return data["lessons"][0]
     def get_lesson_steps(self, lesson_id: int) -> dict:
-        url = f"{self.BASE_URL}/lessons/{lesson_id}"
+        url = f"{self.BASE_URL}/steps?lesson={lesson_id}"
         r = requests.get(url, headers=self._auth_headers())
         r.raise_for_status()
         data = r.json()
-        return data["lessons"][0]
+        return data["steps"]
     # ======== основной метод: заполнение таблиц ========
 
     def sync_course_structure_to_db(
@@ -126,6 +131,7 @@ class StepikTablesAPI:
                 module_position = section.get("position", 0)
                 unit_ids = section.get("units", [])
 
+                logger.info("Обработка модуля %s", module_title)
                 # 2. создаём/обновляем модуль
                 module = db.get(StepikModule, module_id)
                 if module is None:
@@ -149,7 +155,8 @@ class StepikTablesAPI:
                     # запрос урока
                     lesson_data = self.get_lesson(lesson_id)
                     lesson_title = lesson_data.get("title", "")
-
+                    lesson_steps = self.get_lesson_steps(lesson_id)
+                    steps_amount = len(lesson_steps) 
                     # создаём/обновляем урок
                     lesson = db.get(StepikLesson, lesson_id)
                     if lesson is None:
@@ -158,12 +165,14 @@ class StepikTablesAPI:
                             module_id=module_id,
                             title=lesson_title,
                             position=lesson_position,
+                            steps_amount=steps_amount,
                         )
                         db.add(lesson)
                     else:
                         lesson.module_id = module_id
-                        lesson.title = lesson_title
+                        #lesson.title = lesson_title
                         lesson.position = lesson_position
+                        lesson.steps_amount = steps_amount
 
             db.commit()
             print("Структура курса успешно синхронизирована с БД.")

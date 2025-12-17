@@ -54,6 +54,7 @@ class StepikLesson(Base):
     title = Column(String, nullable=False)
     position = Column(Integer, nullable=False)
     boom_media = Column(String, nullable=True)
+    steps_amount = Column(Integer, nullable=True)
 
     # связь: урок принадлежит модулю
     #module = relationship("StepikModule", back_populates="lessons")

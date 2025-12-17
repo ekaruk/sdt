@@ -1,4 +1,11 @@
-from stepik import StepikTablesAPI  
+import sys
+from pathlib import Path
+
+# Add project root to Python path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from stepik.stepik_tables_api import StepikTablesAPI  
 from app.db import Base, engine
 
 if __name__ == "__main__":

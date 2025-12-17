@@ -12,7 +12,7 @@ from telegram.ext import (
 )
 from datetime import datetime
 from typing import Any
-
+from app.config import Config
 from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
 import sys
@@ -26,7 +26,12 @@ sys.path.insert(0, str(ROOT))
 from app.auth import get_user_by_telegram_id
 
 DEFAULT_VIEW_MODE = "mobile"
-BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
+# prod BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
+
+# dev 
+BOT_TOKEN = Config.TELEGRAM_BOT_VIDEO_TOKEN
+
+
 #WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
 WEBAPP_URL_STEPIK="https://stepik.org/lesson/"
 WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/{boom_media}?id_recovery={boom_password}"
