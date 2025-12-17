@@ -12,11 +12,16 @@ from telegram.ext import (
 )
 from datetime import datetime
 from typing import Any
-from app.config import Config
-from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
 import sys
 from pathlib import Path
+
+# Add project root to Python path
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from app.config import Config
+from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
 #python -m bots.bot_dev
 
