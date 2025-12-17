@@ -20,6 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+import logging
+
 from app.config import Config
 from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
@@ -29,6 +31,9 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from app.auth import get_user_by_telegram_id
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 DEFAULT_VIEW_MODE = "mobile"
 # prod BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
@@ -63,13 +68,13 @@ def build_video_url(current_node: Any, context) -> str:
     
     boom_password = context.user_data.get("boom_password", "")
     
-    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
-
-    if boom_media in list_media_no_pass:
-        webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
-    else:
-        webapp_url = WEBAPP_URL_TEMPLATE.format(boom_media=boom_media, 
-                                                boom_password=boom_password)
+#    list_media_no_pass = ["RPBloIDb", "nkLQR8Fv0", "MbFb5tN1", "ShjjOBN0", "7VdpkZ48", "1RUjKEKI", "NNh807eh", "jlJpTeI9", "5o7twHCd", "Bb1aCbln"]
+#
+#    if boom_media in list_media_no_pass:
+#        webapp_url = WEBAPP_URL_TEMPLATE_WITHOUT_PASS.format(boom_media=boom_media)
+#    else:
+    webapp_url = WEBAPP_URL_TEMPLATE.format(boom_media=boom_media, 
+                                            boom_password=boom_password)
     return webapp_url
 
 
@@ -154,6 +159,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                       "Если вы считаете, что это ошибка, пожалуйста, свяжитесь с администратором.\n"\
                       f"И сообщите ваш Telegram ID: {tg_user.id}" 
     else:
+        logger.info("✅Начало работы пользователя: %s", tg_user.full_name)
         context.user_data["user_id"] = user.id  # сохраняем ID пользователя в контекст                   
         context.user_data["boom_password"] = user.boom_password  # сохраняем boom_password пользователя в контекст                   
     
