@@ -33,6 +33,7 @@ sys.path.insert(0, str(ROOT))
 from app.auth import get_user_by_telegram_id
 
 logging.basicConfig(level=logging.INFO)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
 DEFAULT_VIEW_MODE = "mobile"
