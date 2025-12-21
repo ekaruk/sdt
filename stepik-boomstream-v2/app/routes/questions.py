@@ -395,7 +395,7 @@ QUESTIONS_PAGE_TEMPLATE = """
            <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status) }}" 
              class="filter-btn {% if current_period == 'all' %}active{% endif %}">Все время</a>
            <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='last30') }}" 
-             class="filter-btn {% if current_period == 'last30' %}active{% endif %}">Последние 30</a>
+             class="filter-btn {% if current_period == 'last30' %}active{% endif %}">Новые</a>
            <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='week') }}" 
              class="filter-btn {% if current_period == 'week' %}active{% endif %}">За неделю</a>
            <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='month') }}" 
@@ -1023,17 +1023,18 @@ def publish_question(question_id: int):
             if first_module.forum_topic_icon:
                 icon_custom_emoji_id = first_module.forum_topic_icon
         
+        # Логируем токен и chat_id для отладки
+#        print(f"[DEBUG] TELEGRAM_BOT_TOKEN: {Config.TELEGRAM_BOT_TOKEN}")
+#        print(f"[DEBUG] TELEGRAM_CHAT_ID: {Config.TELEGRAM_CHAT_ID}")
         # Создаем форум топик через Telegram Bot API
         create_topic_url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/createForumTopic"
         topic_payload = {
-            'chat_id': Config.TELEGRAM_CHAT_ID,
-            'name': topic_name
+          'chat_id': Config.TELEGRAM_CHAT_ID,
+          'name': topic_name
         }
-        
         # Добавляем иконку если она задана
         if icon_custom_emoji_id:
-            topic_payload['icon_custom_emoji_id'] = icon_custom_emoji_id
-        
+          topic_payload['icon_custom_emoji_id'] = icon_custom_emoji_id
         topic_response = requests.post(create_topic_url, json=topic_payload)
         
         if not topic_response.ok:
@@ -2214,7 +2215,7 @@ MINIAPP_TEMPLATE = """
         <div class="filter-label">📅</div>
         <div class="filter-buttons" id="period-filters">
           <a href="#" class="filter-btn active" data-period="all">Все</a>
-          <a href="#" class="filter-btn" data-period="last30">30 вопросов</a>
+          <a href="#" class="filter-btn" data-period="last30">Новые</a>
           <a href="#" class="filter-btn" data-period="week">Неделя</a>
           <a href="#" class="filter-btn" data-period="month">Месяц</a>
         </div>
