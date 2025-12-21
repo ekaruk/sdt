@@ -8,6 +8,8 @@ from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
+    MessageHandler,
+    filters,
     ContextTypes,
 )
 from datetime import datetime
@@ -40,13 +42,16 @@ DEFAULT_VIEW_MODE = "mobile"
 # prod BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
 
 # dev 
-BOT_TOKEN = Config.TELEGRAM_BOT_VIDEO_TOKEN
+BOT_TOKEN = Config.TELEGRAM_BOT_TOKEN
 
 
 #WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
 WEBAPP_URL_STEPIK="https://stepik.org/lesson/"
 WEBAPP_URL_TEMPLATE = "https://play.boomstream.com/{boom_media}?id_recovery={boom_password}"
 WEBAPP_URL_TEMPLATE_WITHOUT_PASS = "https://play.boomstream.com/{boom_media}"
+
+# Questions Mini App URL
+QUESTIONS_MINIAPP_URL = f"{Config.APP_DOMAIN}/questions/miniapp"
 
 def get_view_mode(context):
     return context.user_data.get("view_mode", DEFAULT_VIEW_MODE)
@@ -183,6 +188,19 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=build_menu_keyboard("root", context),
     )
 
+async def questions_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /questions — открывает Mini App с вопросами"""
+    keyboard = [
+        [InlineKeyboardButton(
+            text="📋 Вопросы студентов",
+            web_app=WebAppInfo(url=QUESTIONS_MINIAPP_URL)
+        )]
+    ]
+    await update.message.reply_text(
+        "Откройте приложение для просмотра вопросов и голосования:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
+    )
+
 
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Универсальный хендлер для всех уровней меню"""
@@ -259,12 +277,48 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def handle_forum_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик сообщений в форум-топиках для подсчета комментариев."""
+    
+    # Проверяем что это сообщение в форум-топике
+    if not update.message or not update.message.is_topic_message:
+        return
+    
+    thread_id = update.message.message_thread_id
+    chat_id = update.message.chat_id
+    
+    # Обновляем счетчик в базе данных
+    try:
+        from app.db import SessionLocal
+        from app.models import TelegramTopic
+        
+        db = SessionLocal()
+        topic = db.query(TelegramTopic).filter_by(
+            chat_id=chat_id,
+            message_thread_id=thread_id
+        ).first()
+        
+        if topic:
+            topic.messages_count += 1
+            db.commit()
+            print(f"✅ Обновлен счетчик для топика {thread_id}: {topic.messages_count} сообщений")
+        
+        db.close()
+    except Exception as e:
+        print(f"❌ Ошибка обновления счетчика: {e}")
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("questions", questions_menu))
     # ловим только callback_data, начинающиеся с "menu:"
     app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^(menu|refresh|toggle):"))
+    
+    # Обработчик для всех сообщений в форум-топиках
+    app.add_handler(MessageHandler(filters.ChatType.SUPERGROUP & filters.IS_TOPIC_MESSAGE, handle_forum_messages))
+    
     app.run_polling()
 
 

@@ -10,29 +10,147 @@ DASHBOARD_TEMPLATE = """
 <head>
   <meta charset="utf-8">
   <title>Личный кабинет</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin: 0 0 10px 0;
+      color: #333;
+    }
+    .user-info {
+      color: #666;
+      font-size: 14px;
+    }
+    .menu {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .menu-item {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .menu-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .menu-item h3 {
+      margin: 0 0 8px 0;
+      color: #667eea;
+      font-size: 18px;
+    }
+    .menu-item p {
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+    }
+    .menu-item.admin {
+      border-left: 4px solid #f59e0b;
+    }
+    .menu-item.curator {
+      border-left: 4px solid #10b981;
+    }
+    .content {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .logout-form {
+      text-align: center;
+    }
+    .logout-btn {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 10px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-left: 10px;
+    }
+    .role-admin {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .role-curator {
+      background: #d1fae5;
+      color: #065f46;
+    }
+  </style>
 </head>
 <body>
-  <h1>Привет, {{ user.email }}!</h1>
+  <div class="header">
+    <h1>
+      Здравствуйте, {{ user.first_name or '' }} {{ user.last_name or '' }}!
+      {% if user.role == 2 %}
+        <span class="role-badge role-admin">Администратор</span>
+      {% elif user.role == 1 %}
+        <span class="role-badge role-curator">Куратор</span>
+      {% endif %}
+    </h1>
+    <div class="user-info">
+      Способ входа: {{ auth_method }}
+      {% if user.telegram_id %}
+        | Telegram ID: {{ user.telegram_id }}
+      {% endif %}
+    </div>
+  </div>
 
-  <p>Способ входа: {{ auth_method }}</p>
+  <div class="menu">
+    <a href="/questions" class="menu-item">
+      <h3>📝 Вопросы</h3>
+      <p>Просмотр и голосование за вопросы</p>
+    </a>
+    
+    <a href="/questions/miniapp" class="menu-item">
+      <h3>📱 Mini App</h3>
+      <p>Telegram Mini App версия</p>
+    </a>
+    
+    {% if user.role == 2 %}
+    <a href="/admin/users" class="menu-item admin">
+      <h3>👥 Пользователи</h3>
+      <p>Управление пользователями и ролями</p>
+    </a>
+    {% endif %}
+  </div>
 
-  <h2>Ваши доступные видео:</h2>
-  {% if grants %}
-    <ul>
-      {% for grant in grants %}
-        <li>
-          {{ grant.boomstream_resource_id }}
-          (урок {{ grant.stepik_lesson_id }}, выдано {{ grant.created_at }})
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>Пока нет доступных видео.</p>
-  {% endif %}
-
-  <form method="post" action="/logout">
-    <button type="submit">Выйти</button>
-  </form>
+  <div class="logout-form">
+    <form method="post" action="/logout">
+      <button type="submit" class="logout-btn">Выйти</button>
+    </form>
+  </div>
 </body>
 </html>
 """
@@ -53,11 +171,17 @@ def me():
         grants = db.query(VideoGrant).filter_by(user_id=user.id).all()
         auth_method = session.get("auth_method", "unknown")
 
+        print('DEBUG user.role:', type(user.role), user.role)
+        print('DEBUG session user_id:', user_id, 'DB user.id:', user.id)
         return render_template_string(
-            DASHBOARD_TEMPLATE,
-            user=user,
-            grants=grants,
-            auth_method=auth_method,
+          DASHBOARD_TEMPLATE + """
+          <div style='color:red'>DEBUG: user.role={{ user.role }} (type: {{ user.role.__class__.__name__ }})<br>
+          session user_id={{ session_user_id }} | db user.id={{ user.id }}</div>
+          """,
+          user=user,
+          grants=grants,
+          auth_method=auth_method,
+          session_user_id=user_id
         )
     finally:
         db.close()

@@ -1,17 +1,16 @@
 # stepik_api.py (или твой GetUserId.py, если там уже класс StepikAPI)
 
-import os
 import requests
-from dotenv import load_dotenv
 import logging
 
 import sys
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from app.db import Base, SessionLocal, engine
 from app.models import StepikModule, StepikLesson
+from app.config import Config
 
 from stepik.stepik_api import StepikAPI
 
@@ -23,11 +22,10 @@ class StepikTablesAPI:
     DEFAULT_COURSE_ID = 247644
 
     def __init__(self, client_id: str | None = None, client_secret: str | None = None):
-        load_dotenv()
-        self.client_id = client_id or os.getenv("STEPIK_CLIENT_ID")
-        self.client_secret = client_secret or os.getenv("STEPIK_CLIENT_SECRET")
+        self.client_id = client_id or Config.STEPIK_CLIENT_ID
+        self.client_secret = client_secret or Config.STEPIK_CLIENT_SECRET
         if not self.client_id or not self.client_secret:
-            raise RuntimeError("Нужны STEPIK_CLIENT_ID и STEPIK_CLIENT_SECRET")
+            raise RuntimeError("Нужны STEPIK_CLIENT_ID и STEPIK_CLIENT_SECRET в конфигурации")
         self._access_token: str | None = None
 
     # ======== базовая авторизация ========

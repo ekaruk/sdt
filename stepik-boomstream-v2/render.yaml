@@ -1,0 +1,104 @@
+# Render.com deployment configuration
+# https://render.com/docs/yaml-spec
+
+services:
+  # Flask Web Application
+  - type: web
+    name: stepik-boomstream-web
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn web_app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      
+      # Домен приложения (обязательно установить!)
+      - key: APP_DOMAIN
+        sync: false  # Требует ручной установки в Render Dashboard
+      
+      # База данных
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stepik-boomstream-db
+          property: connectionString
+      
+      # Telegram Bot Tokens
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      
+      # Stepik API
+      - key: STEPIK_CLIENT_ID
+        sync: false
+      - key: STEPIK_CLIENT_SECRET
+        sync: false
+      - key: STEPIK_COURSE_ID
+        sync: false
+      
+      # Boomstream API
+      - key: BOOMSTREAM_API_KEY
+        sync: false
+      - key: BOOM_CODE_SUBSCRIPTION
+        sync: false
+      - key: BOOM_MEDIA_CODE
+        sync: false
+      
+      # Flask Secret
+      - key: SECRET_KEY
+        generateValue: true
+    
+    healthCheckPath: /
+    
+  # Telegram Bot Worker (optional)
+  # - type: worker
+  #   name: stepik-boomstream-bot
+  #   env: python
+  #   plan: free
+  #   buildCommand: pip install -r requirements.txt
+  #   startCommand: python bot.py
+  #   envVars:
+  #     - key: TELEGRAM_BOT_TOKEN
+  #       sync: false
+  #     - key: DATABASE_URL
+  #       fromDatabase:
+  #         name: stepik-boomstream-db
+  #         property: connectionString
+
+databases:
+  - name: stepik-boomstream-db
+    plan: free
+    databaseName: stepik_boomstream
+    user: stepik_user
+
+# Cron Jobs (для автопубликации вопросов)
+# - type: cron
+#   name: publish-top-questions
+#   env: python
+#   schedule: "0 10 * * *"  # Каждый день в 10:00 UTC
+#   buildCommand: pip install -r requirements.txt
+#   startCommand: python -m app.jobs.publish_top_question
+#   envVars:
+#     - key: DATABASE_URL
+#       fromDatabase:
+#         name: stepik-boomstream-db
+#         property: connectionString
+#     - key: TELEGRAM_BOT_TOKEN
+#       sync: false
+#     - key: TELEGRAM_CHAT_ID
+#       sync: false
+
+# - type: cron
+#   name: close-expired-topics
+#   env: python
+#   schedule: "0 * * * *"  # Каждый час
+#   buildCommand: pip install -r requirements.txt
+#   startCommand: python -m app.jobs.close_expired_topics
+#   envVars:
+#     - key: DATABASE_URL
+#       fromDatabase:
+#         name: stepik-boomstream-db
+#         property: connectionString
+#     - key: TELEGRAM_BOT_TOKEN
+#       sync: false
+#     - key: TELEGRAM_CHAT_ID
+#       sync: false

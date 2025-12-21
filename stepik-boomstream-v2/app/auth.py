@@ -1,9 +1,68 @@
 # app/auth.py
+from flask import session, redirect, url_for, abort, request
+from functools import wraps
 from app.db import SessionLocal
-from app.models import User, TelegramUser
+from app.models import User, TelegramUser, ROLE_CURATOR, ROLE_ADMIN
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def login_required(f):
+    """Декоратор: требует авторизации пользователя."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('auth.login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def curator_required(f):
+    """Декоратор: требует прав куратора (role >= 1)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        
+        # Если не залогинен - редирект на логин
+        if not user_id:
+            return redirect(url_for('auth.login'))
+        
+        # Проверяем роль
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter_by(id=user_id).first()
+            if not user or user.role < ROLE_CURATOR:
+                abort(403, description="У вас недостаточно прав для доступа к этой странице")
+        finally:
+            db.close()
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+def admin_required(f):
+    """Декоратор: требует прав администратора (role >= 2)."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        
+        # Если не залогинен - редирект на логин
+        if not user_id:
+            return redirect(url_for('auth.login'))
+        
+        # Проверяем роль
+        db = SessionLocal()
+        try:
+            user = db.query(User).filter_by(id=user_id).first()
+            if not user or user.role < ROLE_ADMIN:
+                abort(403, description="У вас недостаточно прав для доступа к этой странице")
+        finally:
+            db.close()
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 
 def get_user_by_telegram_id(telegram_id: int):
     """
