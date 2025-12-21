@@ -117,7 +117,7 @@ def login():
         # Если уже авторизован — сразу в кабинет
         if session.get("user_id"):
             return redirect("/me")
-        return render_template_string(LOGIN_TEMPLATE, error=None, app_domain=get_app_domain())
+        return render_template_string(LOGIN_TEMPLATE, error=None, app_domain=get_app_domain(), telegram_bot_username=Config.BOT_USERNAME)
 
     # POST: вход по email + пароль (Boomstream-пароль, 9 цифр)
     email = request.form.get("email", "").strip()
@@ -222,13 +222,13 @@ def test_telegram_widget():
     <div class="info">
         <strong>Информация:</strong><br>
         Домен приложения: <code>{{ app_domain }}</code><br>
-        Бот: <code>@sdt_dev_bot</code><br>
+        Бот: <code>@{{ telegram_bot_username }}</code><br>
         Callback URL: <code>{{ app_domain }}/login/telegram/callback</code>
     </div>
     
     <h2>Виджет авторизации:</h2>
     <script async src="https://telegram.org/js/telegram-widget.js?22"
-            data-telegram-login="sdt_dev_bot"
+          data-telegram-login="{{ telegram_bot_username }}"
             data-size="large"
             data-onauth="onTelegramAuth(user)"
             data-request-access="write">
