@@ -1,13 +1,19 @@
 #!/usr/bin/env python
-import os
 import sys
 import json
 import datetime
 from contextlib import contextmanager
+from pathlib import Path
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.engine import Engine
 from sqlalchemy import DateTime, Date, Time, Integer, BigInteger
+
+# Добавляем корневую папку проекта в sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.config import Config
 
 #"Использование:\n"
 #              $env:DATABASE_URL = "sqlite:///local.db"
@@ -19,12 +25,12 @@ from sqlalchemy import DateTime, Date, Time, Integer, BigInteger
 
 def get_engine() -> Engine:
     """
-    Создаёт SQLAlchemy Engine на основе переменной окружения DATABASE_URL.
+    Создаёт SQLAlchemy Engine на основе Config.DATABASE_URL.
     Поддерживаются sqlite, postgresql и др.
     """
-    db_url = os.getenv("DATABASE_URL")
+    db_url = Config.DATABASE_URL
     if not db_url:
-        raise RuntimeError("Не задана переменная окружения DATABASE_URL")
+        raise RuntimeError("DATABASE_URL не задан в конфигурации")
     return create_engine(db_url, pool_pre_ping=True)
 
 

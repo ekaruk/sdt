@@ -1,11 +1,13 @@
 import requests
 import json
-import os
+import sys
+from pathlib import Path
 
+# Добавляем корневую папку проекта в sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
 
-from dotenv import load_dotenv
-
-#from openai import OpenAI
+from app.config import Config
 
 # ---------------- НАСТРОЙКИ ----------------
 
@@ -15,11 +17,11 @@ from dotenv import load_dotenv
 
 
 def get_access_token():
+    STEPIK_CLIENT_ID = Config.STEPIK_CLIENT_ID
+    STEPIK_CLIENT_SECRET = Config.STEPIK_CLIENT_SECRET
     
-    load_dotenv()
-
-    STEPIK_CLIENT_ID = os.getenv("STEPIK_CLIENT_ID")
-    STEPIK_CLIENT_SECRET = os.getenv("STEPIK_CLIENT_SECRET")
+    if not STEPIK_CLIENT_ID or not STEPIK_CLIENT_SECRET:
+        raise RuntimeError("STEPIK_CLIENT_ID и STEPIK_CLIENT_SECRET не заданы в конфигурации")
     
     resp = requests.post(
         "https://stepik.org/oauth2/token/",

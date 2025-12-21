@@ -10,13 +10,18 @@ from telegram.ext import (
     Application,
     CommandHandler,
     CallbackQueryHandler,
+    MessageHandler,
+    filters,
     ContextTypes,
 )
 
 from datetime import datetime
 
-BOT_TOKEN = "8570792426:AAHlF4WaDjh-0NyqBsmngFCVM9QQazkVudY"
+# @sdt_dev_bot
+BOT_TOKEN = "8548823518:AAGKIvhJS9CExkr8c9kU01hJvda_cGEUzOU"
 WEBAPP_URL2 = "https://play.boomstream.com/TsQAJHvj?id_recovery=sdt20252"
+# QUESTIONS_MINIAPP_URL = "https://stepik-boomstream-v2.onrender.com/questions/miniapp"  # Production
+QUESTIONS_MINIAPP_URL = "https://vapid-agnus-unconversational.ngrok-free.dev/questions/miniapp"  # ngrok для тестирования
 
 SECTIONS = {
     "561993": {
@@ -160,6 +165,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
+async def questions_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Команда /questions — открывает Mini App с вопросами"""
+    keyboard = [
+        [InlineKeyboardButton(
+            text="📋 Вопросы студентов",
+            web_app=WebAppInfo(url=QUESTIONS_MINIAPP_URL)
+        )]
+    ]
+    await update.message.reply_text(
+        "Откройте приложение для просмотра вопросов и голосования:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard),
+    )
+
+
 async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     data = query.data
@@ -193,11 +212,46 @@ async def handle_callbacks(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 
+async def handle_forum_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик сообщений в форум-топиках для подсчета комментариев."""
+    
+    # Проверяем что это сообщение в форум-топике
+    if not update.message or not update.message.is_topic_message:
+        return
+    
+    thread_id = update.message.message_thread_id
+    chat_id = update.message.chat_id
+    
+    # Обновляем счетчик в базе данных
+    try:
+        from app.db import SessionLocal
+        from app.models import TelegramTopic
+        
+        db = SessionLocal()
+        topic = db.query(TelegramTopic).filter_by(
+            chat_id=chat_id,
+            message_thread_id=thread_id
+        ).first()
+        
+        if topic:
+            topic.messages_count += 1
+            db.commit()
+            print(f"✅ Обновлен счетчик для топика {thread_id}: {topic.messages_count} сообщений")
+        
+        db.close()
+    except Exception as e:
+        print(f"❌ Ошибка обновления счетчика: {e}")
+
+
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("questions", questions_menu))
     app.add_handler(CallbackQueryHandler(handle_callbacks))
+    
+    # Обработчик для всех сообщений в форум-топиках
+    app.add_handler(MessageHandler(filters.ChatType.SUPERGROUP & filters.IS_TOPIC_MESSAGE, handle_forum_messages))
 
     app.run_polling()
 

@@ -7,20 +7,30 @@ from . import models  # чтобы модели зарегистрировали
 from .routes.auth import auth_bp
 from .routes.dashboard import dashboard_bp
 from .routes.webapp_admin import admin_bp
+from .routes.questions import questions_bp
 
 def create_app() -> Flask:
+    # Проверяем конфигурацию перед запуском
+    Config.validate()
+    
     app = Flask(__name__)
     app.config["SECRET_KEY"] = Config.SECRET_KEY
 
     # Долгая сессия (можно поменять срок)
     app.permanent_session_lifetime = timedelta(days=30)
 
+
     # Создаём таблицы (для простоты, без миграций)
     Base.metadata.create_all(bind=engine)
+
+    # Проверяем и создаём votes_count + триггер, если нужно
+    from utils.ensure_votes_count_trigger import ensure_votes_count_trigger
+    ensure_votes_count_trigger()
 
     # Регистрируем blueprints
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(questions_bp)
 
     return app

@@ -2,11 +2,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from ..db import SessionLocal
 from ..models import User, TelegramUser
+from ..auth import admin_required
 
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
 
 
 @admin_bp.route("/users")
+@admin_required
 def users_table():
     """Страница с таблицей users + telegram_users."""
     view = request.args.get("view", "combined")  # combined | users | telegram
@@ -31,6 +33,7 @@ def users_table():
 
 
 @admin_bp.post("/users/<int:user_id>/video_access")
+@admin_required
 def set_video_access(user_id: int):
     """Обработчик кнопок 'дать/запретить доступ'."""
     action = request.form.get("action")  # allow | deny
@@ -49,3 +52,4 @@ def set_video_access(user_id: int):
         session.close()
 
     return redirect(url_for("admin_bp.users_table", view=request.args.get("view", "combined")))
+

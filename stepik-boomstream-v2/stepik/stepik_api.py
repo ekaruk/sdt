@@ -1,7 +1,13 @@
-import os
 import json
 import requests
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
+
+# Добавляем корневую папку проекта в sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+
+from app.config import Config
 
 
 class StepikAPI:
@@ -23,16 +29,14 @@ class StepikAPI:
         group_id: str | None = None,
         save_last_response: bool = False,
     ) -> None:
-        load_dotenv()
-
-        self.client_id = client_id or os.getenv("STEPIK_CLIENT_ID")
-        self.client_secret = client_secret or os.getenv("STEPIK_CLIENT_SECRET")
-        self.group_id = group_id or os.getenv("STEPIK_GROUP_ID") or "12259213"
+        self.client_id = client_id or Config.STEPIK_CLIENT_ID
+        self.client_secret = client_secret or Config.STEPIK_CLIENT_SECRET
+        self.group_id = group_id or Config.STEPIK_GROUP_ID or "12259213"
 
         if not self.client_id or not self.client_secret:
             raise RuntimeError(
                 "Не заданы STEPIK_CLIENT_ID / STEPIK_CLIENT_SECRET "
-                "ни в .env, ни в параметрах StepikAPI()."
+                "в конфигурации или параметрах StepikAPI()."
             )
 
         self.save_last_response = save_last_response
