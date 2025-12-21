@@ -22,13 +22,10 @@ class Config:
     STEPIK_COURSE_ID = os.getenv("STEPIK_COURSE_ID")
     STEPIK_GROUP_ID = os.getenv("STEPIK_GROUP_ID")
 
-<<<<<<< HEAD
     TELEGRAM_BOT_VIDEO_TOKEN = os.getenv("TELEGRAM_BOT_VIDEO_TOKEN")
-=======
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ID форум-группы для публикации вопросов
     BOT_USERNAME = os.getenv("BOT_USERNAME")
->>>>>>> dev
 
     BOOMSTREAM_API_KEY = os.getenv("BOOM_API_KEY")
     BOOMSTREAM_CODE_SUBSCRIPTION = os.getenv("BOOM_CODE_SUBSCRIPTION")
