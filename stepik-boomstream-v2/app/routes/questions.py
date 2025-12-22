@@ -565,8 +565,8 @@ QUESTIONS_PAGE_TEMPLATE = """
 # CONSTANTS
 # ============================================================================
 
-TITLE_MAX_LENGTH = 60  # Максимальная длина заголовка вопроса
-SUMMARY_MAX_LENGTH = 500  # Максимальная длина summary (резюме)
+TITLE_MAX_LENGTH = 200  # Максимальная длина заголовка вопроса
+SUMMARY_MAX_LENGTH = 800  # Максимальная длина summary (резюме)
 
 # ============================================================================
 # HELPER FUNCTIONS
@@ -628,7 +628,7 @@ def generate_title_with_ai(body: str) -> str:
 #        return first_sentence[:TITLE_MAX_LENGTH] if len(first_sentence) > TITLE_MAX_LENGTH else first_sentence
 
 
-def generate_summary_with_ai(answer_text: str) -> str:
+def generate_summary_with_ai(answer_text: str, question_text: str) -> str:
     """Генерирует краткое резюме итогового ответа через OpenAI API (1-3 предложения, до 300 символов)."""
     if not Config.OPENAI_API_KEY:
       # Fallback: берем первые 2 предложения
@@ -657,20 +657,23 @@ def generate_summary_with_ai(answer_text: str) -> str:
       prompt={
           "id": prompt_id,
 #          "version": "3",
-          "variables": {"answer_text": answer_text},
+          "variables": {
+              "question_text": question_text,
+              "answer_text": answer_text
+              },
       },
       reasoning={"effort": "low"},   # low/medium/high — как доступно
       text={
           "verbosity": "low",
           "format": {"type": "text"},
       },
-      max_output_tokens=220,
+      max_output_tokens=400,
       store=True,
       )
       
       summary = response.output_text.strip()
       print(f"[AI Summary] len(answer_text)={len(answer_text)};  Response: {len(summary)}:{summary}")
-      return summary[:SUMMARY_MAX_LENGTH]
+      return summary [:SUMMARY_MAX_LENGTH]
 
     except Exception as e:
         print(f"[AI Summary] Error: {e}")
@@ -715,10 +718,11 @@ from flask import abort
 def generate_summary_api():
   data = request.get_json(force=True)
   answer_text = data.get("answer_text", "").strip()
+  question_text = data.get("question_text", "").strip()
   if not answer_text:
     return jsonify({"success": False, "error": "Требуется полный ответ"}), 400
   try:
-    summary = generate_summary_with_ai(answer_text)
+    summary = generate_summary_with_ai(answer_text, question_text)
     return jsonify({"success": True, "summary": summary})
   except Exception as e:
     return jsonify({"success": False, "error": str(e)}), 500
@@ -1389,7 +1393,8 @@ def question_detail(question_id: int):
             answer_text = request.form.get('answer', '').strip()
             sources_text = request.form.get('sources', '').strip()
             answer_summary = request.form.get('summary', '').strip()
-                 
+            question_text = question.body 
+
             if answer_text:
                 # Преобразуем sources в JSON формат
                 sources_json = None
@@ -1399,7 +1404,7 @@ def question_detail(question_id: int):
                 # Генерируем краткое резюме автоматически
                 if not answer_summary and answer_text:
                     print(f"[DEBUG] Generating summary for answer, length: {len(answer_text)}")
-                    answer_summary = generate_summary_with_ai(answer_text)
+                    answer_summary = generate_summary_with_ai(answer_text, question_text)
                     print(f"[AI Summary] Generated: {answer_summary[:100]}...")
                 
                 # Если есть answer, создаём/обновляем запись
@@ -1916,8 +1921,10 @@ def question_detail(question_id: int):
                   const answerField = document.getElementById('answer');
                   const summaryField = document.getElementById('summary');
                   const statusDiv = document.getElementById('summary-gen-status');
-                  if (!answerField || !summaryField) return;
+                  const bodyField = document.getElementById('body');
+                  if (!answerField || !summaryField || !bodyField) return;
                   const answerText = answerField.value.trim();
+                  const questionText = bodyField.value.trim();
                   if (!answerText) {
                     statusDiv.textContent = 'Сначала заполните полный ответ.';
                     return;
@@ -1928,7 +1935,7 @@ def question_detail(question_id: int):
                     const resp = await fetch('/questions/generate-summary', {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ answer_text: answerText })
+                      body: JSON.stringify({ answer_text: answerText, question_text: questionText })
                     });
                     const data = await resp.json();
                     if (data.success) {
