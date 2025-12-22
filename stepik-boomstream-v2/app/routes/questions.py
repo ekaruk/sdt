@@ -1515,6 +1515,25 @@ def question_detail(question_id: int):
             .back-link { display: inline-block; margin-bottom: 12px; color: #667eea; text-decoration: none; font-size: 15px; }
             .back-link:hover { text-decoration: underline; }
             .card { background: white; padding: 16px 12px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+            /* --- EDIT FORM FIELDS: убираем ограничения, делаем ширину 100% --- */
+            .edit-form .form-group input[type="text"],
+            .edit-form .form-group select,
+            .edit-form .form-group textarea {
+              width: 100%;
+              box-sizing: border-box;
+              font-size: 15px;
+              border-radius: 8px;
+              border: 1px solid #e0e0e0;
+              padding: 8px 10px;
+              resize: vertical;
+              background: #fff;
+              color: #222;
+              margin: 0;
+            }
+            .edit-form .form-group textarea#body { min-height: 180px; }
+            .edit-form .form-group textarea#answer { min-height: 220px; }
+            .edit-form .form-group textarea#summary { min-height: 80px; }
+            /* Убираем все мобильные/миниапп-специфичные стили для edit-form */
             .modules-status-row {
               display: flex;
               justify-content: space-between;
@@ -1545,15 +1564,7 @@ def question_detail(question_id: int):
             .archive-btn { background: #9c27b0; }
             .archive-btn:hover { background: #7b1fa2; }
             .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
-            @media (max-width: 600px) {
-              body { padding: 6px 8px; }
-              .card { padding: 8px 6px; border-radius: 7px; }
-              h1 { font-size: 15px; }
-              .body { font-size: 13px; }
-              .answer-section { padding: 6px; }
-              .modules-status-row { gap: 4px; }
-              .module-badge, .status-badge { font-size: 11px; padding: 3px 6px; border-radius: 8px; }
-            }
+            /* @media (max-width: 600px) { ... } — удалено для edit-form */
           </style>
         </head>
         <body>
@@ -1681,9 +1692,14 @@ def question_detail(question_id: int):
                 </div>
               </div>
               
-              <div class="form-actions">
-                <button type="submit" class="btn btn-primary">💾 Сохранить</button>
-                <button type="button" class="btn btn-secondary" onclick="document.getElementById('edit-form').style.display='none'; const actionButtons = document.querySelector('.action-buttons'); if (actionButtons) actionButtons.style.display='flex';">Отмена</button>
+              <div class="form-actions" style="display: flex; gap: 10px; margin-top: 18px;">
+                <button type="submit" class="edit-btn" style="background: #667eea; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                  💾 Сохранить
+                </button>
+                <button type="button" class="cancel-btn" style="background: #f5f5f5; color: #667eea; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 22px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                  onclick="document.getElementById('edit-form').style.display='none'; const actionButtons = document.querySelector('.action-buttons'); if (actionButtons) actionButtons.style.display='flex';">
+                  Отмена
+                </button>
               </div>
             </form>
           </div>
