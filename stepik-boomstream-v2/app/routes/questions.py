@@ -6,11 +6,25 @@ from ..db import SessionLocal
 from ..models import Question, QuestionVote, QuestionStepikModule, StepikModule, TelegramUser, QuestionAnswer, TelegramTopic, User
 from ..telegram_auth import validate_webapp_init_data
 from ..config import Config
+from openai import OpenAI
 import requests
 
 questions_bp = Blueprint("questions", __name__, url_prefix="/questions")
 
+# AJAX endpoint для генерации краткого заголовка (title)
+@questions_bp.route("/generate-title", methods=["POST"])
+def generate_title_api():
+  data = request.get_json(force=True)
+  body_text = data.get("body_text", "").strip()
+  if not body_text:
+    return jsonify({"success": False, "error": "Требуется текст вопроса"}), 400
+  try:
+    title = generate_title_with_ai(body_text)
+    return jsonify({"success": True, "title": title})
+  except Exception as e:
+    return jsonify({"success": False, "error": str(e)}), 500
 
+ 
 # ============================================================================
 # HTML TEMPLATE
 # ============================================================================
@@ -201,7 +215,7 @@ QUESTIONS_PAGE_TEMPLATE = """
     .status-archived { background: #ede7f6; color: #512da8; }
     
     .question-title {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 600;
       color: #222;
       margin-bottom: 8px;
@@ -209,7 +223,7 @@ QUESTIONS_PAGE_TEMPLATE = """
     
     .question-body {
       color: #555;
-      font-size: 14px;
+      font-size: 15px;
       line-height: 1.5;
       margin-bottom: 12px;
     }
@@ -545,135 +559,125 @@ QUESTIONS_PAGE_TEMPLATE = """
 """
 
 
+
+
+# ============================================================================
+# CONSTANTS
+# ============================================================================
+
+TITLE_MAX_LENGTH = 60  # Максимальная длина заголовка вопроса
+SUMMARY_MAX_LENGTH = 500  # Максимальная длина summary (резюме)
+
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 
 def generate_title_with_ai(body: str) -> str:
     """Генерирует краткий заголовок вопроса через OpenAI API."""
+    print(f"[AI Title Debug] Вызван generate_title_with_ai с body длиной {len(body)}")
     if not Config.OPENAI_API_KEY:
-        # Fallback: берем первое предложение
-        first_sentence = body.split('.')[0].split('?')[0].strip()
-        return first_sentence[:60] if len(first_sentence) > 60 else first_sentence
+      print(f"[AI Title Error] Не задан OPENAI_API_KEY")
+      return 
+#      # Fallback: берем первое предложение
+#      first_sentence = body.split('.')[0].split('?')[0].strip()
+#      return first_sentence[:TITLE_MAX_LENGTH] if len(first_sentence) > TITLE_MAX_LENGTH else first_sentence
     
     # Загружаем промпт из файла
-    try:
-        import os
-        # Путь от app/routes/questions.py к корню проекта (на 3 уровня вверх)
-        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'prompts', 'title_generation.txt')
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            system_prompt = f.read().strip()
-    except Exception as e:
-        print(f"[AI Title] Error loading prompt file: {e}")
-        system_prompt = 'Создай краткий заголовок (3-5 слов) для вопроса студента курса по аюрведе и очищению психического тела.'
+#    try:
+#        import os
+#        # Путь от app/routes/questions.py к корню проекта (на 3 уровня вверх)
+#        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'prompts', 'title_generation.txt')
+#        with open(prompt_path, 'r', encoding='utf-8') as f:
+#            system_prompt = f.read().strip()
+#    except Exception as e:
+#        print(f"[AI Title] Error loading prompt file: {e}")
+#        system_prompt = 'Создай краткий заголовок (3-5 слов) для вопроса студента курса по аюрведе и очищению психического тела.'
     
     try:
-        response = requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers={
-                'Authorization': f'Bearer {Config.OPENAI_API_KEY}',
-                'Content-Type': 'application/json'
-            },
-            json={
-                'model': 'gpt-3.5-turbo',
-                'messages': [
-                    {
-                        'role': 'system',
-                        'content': system_prompt
-                    },
-                    {
-                        'role': 'user',
-                        'content': f'Создай краткий заголовок (максимум 5 слов):\n\n{body[:500]}'
-                    }
-                ],
-                'max_tokens': 30,
-                'temperature': 0.7
-            },
-            timeout=10
-        )
-        
-        if response.ok:
-            data = response.json()
-            title = data['choices'][0]['message']['content'].strip()
-            # Убираем кавычки если есть
-            title = title.strip('"\'')
-            return title[:60]  # Жесткое ограничение 60 символов
-        else:
-            print(f"[AI Title] OpenAI API error: {response.text}")
-            # Fallback
-            first_sentence = body.split('.')[0].split('?')[0].strip()
-            return first_sentence[:60]
+      client = OpenAI(api_key=Config.OPENAI_API_KEY)
+      print(f"[AI Title Debug] Вызван generate_title_with_ai try: client created")
+      # Используйте ваш prompt_id вместо pmpt_69482ba5e9b081979cebfabfcd6f2e91062e41f5f88a53ae
+      prompt_id = "pmpt_694830cd25408197b5ae685690b2359906aff6cb9d790b6b"
+      response = client.responses.create(
+      model="gpt-5.2",
+      prompt={
+          "id": prompt_id,
+#          "version": "7",        
+          "variables": {"question_text": body},
+      },
+      reasoning={"effort": "medium"},   # low/medium/high — как доступно
+      text={
+          "verbosity": "low",
+          "format": {"type": "text"},
+      },
+      max_output_tokens=100,
+      store=True, 
+      )
+      
+      summary = response.output_text.strip()
+      print(f"[AI Title] Response: {len(summary)}: {summary}")
+      return summary[:TITLE_MAX_LENGTH]
+
             
     except Exception as e:
         print(f"[AI Title] Error: {e}")
-        # Fallback: берем первое предложение
-        first_sentence = body.split('.')[0].split('?')[0].strip()
-        return first_sentence[:60] if len(first_sentence) > 60 else first_sentence
+        return ""
+#        print(f"[AI Title] Error: {e}")
+#        # Fallback: берем первое предложение
+#        first_sentence = body.split('.')[0].split('?')[0].strip()
+#        return first_sentence[:TITLE_MAX_LENGTH] if len(first_sentence) > TITLE_MAX_LENGTH else first_sentence
 
 
 def generate_summary_with_ai(answer_text: str) -> str:
     """Генерирует краткое резюме итогового ответа через OpenAI API (1-3 предложения, до 300 символов)."""
     if not Config.OPENAI_API_KEY:
-        # Fallback: берем первые 2 предложения
-        sentences = answer_text.split('.')[:2]
-        summary = '. '.join(s.strip() for s in sentences if s.strip())
-        return summary[:300] if len(summary) > 300 else summary
+      # Fallback: берем первые 2 предложения
+      sentences = answer_text.split('.')[:2]
+      summary = '. '.join(s.strip() for s in sentences if s.strip())
+      return summary[:SUMMARY_MAX_LENGTH] if len(summary) > SUMMARY_MAX_LENGTH else summary
     
-    # Загружаем промпт из файла
-    try:
-        import os
-        # Путь от app/routes/questions.py к корню проекта (на 3 уровня вверх)
-        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'prompts', 'summary_generation.txt')
-        with open(prompt_path, 'r', encoding='utf-8') as f:
-            system_prompt = f.read().strip()
-    except Exception as e:
-        print(f"[AI Summary] Error loading prompt file: {e}")
-        system_prompt = 'Создай краткое резюме (1-3 предложения) ответа преподавателя курса по аюрведе и очищению психического тела.'
+#    # Загружаем промпт из файла
+#    try:
+#        import os
+#        # Путь от app/routes/questions.py к корню проекта (на 3 уровня вверх)
+#        prompt_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'prompts', 'summary_generation.txt')
+#        with open(prompt_path, 'r', encoding='utf-8') as f:
+#            system_prompt = f.read().strip()
+#    except Exception as e:
+#        print(f"[AI Summary] Error loading prompt file: {e}")
+#        system_prompt = 'Создай краткое резюме (1-3 предложения) ответа преподавателя курса по аюрведе и очищению психического тела.'
     
     try:
-        response = requests.post(
-            'https://api.openai.com/v1/chat/completions',
-            headers={
-                'Authorization': f'Bearer {Config.OPENAI_API_KEY}',
-                'Content-Type': 'application/json'
-            },
-            json={
-                'model': 'gpt-3.5-turbo',
-                'messages': [
-                    {
-                        'role': 'system',
-                        'content': system_prompt
-                    },
-                    {
-                        'role': 'user',
-                        'content': f'Создай краткое резюме (1-3 предложения, до 300 символов) для этого ответа:\n\n{answer_text[:1000]}'
-                    }
-                ],
-                'max_tokens': 100,
-                'temperature': 0.7
-            },
-            timeout=10
-        )
-        
-        if response.ok:
-            data = response.json()
-            summary = data['choices'][0]['message']['content'].strip()
-            # Убираем кавычки если есть
-            summary = summary.strip('"\'')
-            return summary[:300]  # Жесткое ограничение 300 символов
-        else:
-            print(f"[AI Summary] OpenAI API error: {response.text}")
-            # Fallback
-            sentences = answer_text.split('.')[:2]
-            summary = '. '.join(s.strip() for s in sentences if s.strip())
-            return summary[:300]
-            
+      client = OpenAI(api_key=Config.OPENAI_API_KEY)
+
+      # Используйте ваш prompt_id вместо pmpt_69482ba5e9b081979cebfabfcd6f2e91062e41f5f88a53ae
+      prompt_id = "pmpt_69482ba5e9b081979cebfabfcd6f2e91062e41f5f88a53ae"
+      response = client.responses.create(
+      model="gpt-5.2",
+      prompt={
+          "id": prompt_id,
+#          "version": "3",
+          "variables": {"answer_text": answer_text},
+      },
+      reasoning={"effort": "low"},   # low/medium/high — как доступно
+      text={
+          "verbosity": "low",
+          "format": {"type": "text"},
+      },
+      max_output_tokens=220,
+      store=True,
+      )
+      
+      summary = response.output_text.strip()
+      print(f"[AI Summary] len(answer_text)={len(answer_text)};  Response: {len(summary)}:{summary}")
+      return summary[:SUMMARY_MAX_LENGTH]
+
     except Exception as e:
         print(f"[AI Summary] Error: {e}")
         # Fallback: берем первые 2 предложения
         sentences = answer_text.split('.')[:2]
         summary = '. '.join(s.strip() for s in sentences if s.strip())
-        return summary[:300] if len(summary) > 300 else summary
+        return summary[:SUMMARY_MAX_LENGTH] if len(summary) > SUMMARY_MAX_LENGTH else summary
 
 
 def get_status_label(status: str) -> str:
@@ -699,9 +703,25 @@ def get_period_filter(period: str):
     return None
 
 
+
 # ============================================================================
 # ROUTES
 # ============================================================================
+
+# AJAX endpoint для генерации краткого ответа (summary)
+from flask import abort
+
+@questions_bp.route("/generate-summary", methods=["POST"])
+def generate_summary_api():
+  data = request.get_json(force=True)
+  answer_text = data.get("answer_text", "").strip()
+  if not answer_text:
+    return jsonify({"success": False, "error": "Требуется полный ответ"}), 400
+  try:
+    summary = generate_summary_with_ai(answer_text)
+    return jsonify({"success": True, "summary": summary})
+  except Exception as e:
+    return jsonify({"success": False, "error": str(e)}), 500
 
 @questions_bp.route("", methods=["GET"])
 def list_questions():
@@ -1081,7 +1101,7 @@ def publish_question(question_id: int):
         question.status = 'POSTED'
         question.posted_at = datetime.utcnow()
         
-        db.commit()
+        db.commit();
         
         return jsonify({
             'success': True,
@@ -1367,7 +1387,8 @@ def question_detail(question_id: int):
             # Обновляем или создаём итоговый ответ
             answer_text = request.form.get('answer', '').strip()
             sources_text = request.form.get('sources', '').strip()
-            
+            answer_summary = request.form.get('summary', '').strip()
+                 
             if answer_text:
                 # Преобразуем sources в JSON формат
                 sources_json = None
@@ -1375,9 +1396,10 @@ def question_detail(question_id: int):
                     sources_json = {"text": sources_text}
                 
                 # Генерируем краткое резюме автоматически
-                print(f"[DEBUG] Generating summary for answer, length: {len(answer_text)}")
-                answer_summary = generate_summary_with_ai(answer_text)
-                print(f"[AI Summary] Generated: {answer_summary[:100]}...")
+                if not answer_summary and answer_text:
+                    print(f"[DEBUG] Generating summary for answer, length: {len(answer_text)}")
+                    answer_summary = generate_summary_with_ai(answer_text)
+                    print(f"[AI Summary] Generated: {answer_summary[:100]}...")
                 
                 # Если есть answer, создаём/обновляем запись
                 answer = db.query(QuestionAnswer).filter_by(question_id=new_question_id).first()
@@ -1474,6 +1496,7 @@ def question_detail(question_id: int):
         detail_template = """
         <!doctype html>
         <html lang="ru">
+
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1484,141 +1507,103 @@ def question_detail(question_id: int):
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
               max-width: 800px;
               margin: 0 auto;
-              padding: 20px;
-              line-height: 1.6;
+              padding: 12px 16px; /* увеличенные отступы по краям */
+              line-height: 1.5;
               background: #f5f5f5;
             }
-            .back-link { display: inline-block; margin-bottom: 20px; color: #667eea; text-decoration: none; }
+            .back-link { display: inline-block; margin-bottom: 12px; color: #667eea; text-decoration: none; font-size: 15px; }
             .back-link:hover { text-decoration: underline; }
-            .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-            .modules { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-            .module-badge { background: #e3f2fd; color: #1976d2; padding: 6px 12px; border-radius: 12px; font-size: 13px; }
-            .question-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-            .status-badge { padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+            .card { background: white; padding: 16px 12px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+            .modules-status-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start; /* keep status aligned to top */
+              margin-bottom: 8px;
+              gap: 8px;
+            }
+            .modules { display: flex; gap: 6px; overflow: hidden; min-width: 0; }
+            .module-badge { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; flex: 0 0 auto; text-overflow: ellipsis; overflow: hidden; max-width: 160px; }
+            .status-badge { padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; align-self: flex-start; margin-left: 8px; flex: 0 0 auto; }
             .status-voting { background: #fff3e0; color: #f57c00; }
             .status-scheduled { background: #e1f5fe; color: #0288d1; }
             .status-posted { background: #e8f5e9; color: #388e3c; }
             .status-closed { background: #f3e5f5; color: #7b1fa2; }
             .status-archived { background: #ede7f6; color: #512da8; }
-            h1 { margin-bottom: 16px; color: #222; }
-            .meta { color: #999; font-size: 14px; margin-bottom: 24px; }
-            .body { white-space: pre-wrap; margin-bottom: 24px; color: #333; }
-            .answer-section { background: #f9fbe7; border-left: 4px solid #9ccc65; padding: 20px; border-radius: 4px; margin-top: 24px; }
-            .answer-section h2 { color: #558b2f; margin-bottom: 12px; }
-            .telegram-btn { display: inline-block; padding: 12px 24px; background: #0088cc; color: white; text-decoration: none; border-radius: 8px; margin-top: 16px; border: none; cursor: pointer; }
+            h1 { margin: 0 0 8px 0; color: #222; font-size: 19px; line-height: 1.2; }
+            .meta { color: #999; font-size: 12px; margin-bottom: 8px; }
+            .body { white-space: pre-wrap; margin-bottom: 12px; color: #333; font-size: 15px; }
+            .answer-section { background: #f9fbe7; border-left: 3px solid #9ccc65; padding: 10px; border-radius: 4px; margin-top: 12px; }
+            .answer-section h2 { color: #558b2f; margin-bottom: 8px; font-size: 15px; }
+            .telegram-btn { display: inline-block; padding: 8px 16px; background: #0088cc; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; border: none; cursor: pointer; font-size: 13px; }
             .telegram-btn:hover { background: #006699; }
-            .edit-btn { display: inline-block; padding: 10px 20px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; margin-top: 16px; }
+            .edit-btn { display: inline-block; padding: 7px 14px; background: #667eea; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; font-size: 13px; }
             .edit-btn:hover { background: #5568d3; }
-            .close-discussion-btn { display: inline-block; padding: 10px 20px; background: #f44336; color: white; text-decoration: none; border-radius: 8px; margin-top: 16px; border: none; cursor: pointer; }
+            .close-discussion-btn, .archive-btn { display: inline-block; padding: 7px 14px; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; border: none; cursor: pointer; font-size: 13px; }
+            .close-discussion-btn { background: #f44336; }
             .close-discussion-btn:hover { background: #d32f2f; }
-            .archive-btn { display: inline-block; padding: 10px 20px; background: #9c27b0; color: white; text-decoration: none; border-radius: 8px; margin-top: 16px; border: none; cursor: pointer; }
+            .archive-btn { background: #9c27b0; }
             .archive-btn:hover { background: #7b1fa2; }
-            .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 12px; }
-            .edit-form { background: #f9f9f9; padding: 24px; border-radius: 8px; margin-top: 24px; border: 2px solid #667eea; }
-            .edit-form h2 { margin-top: 0; color: #667eea; }
-            .form-group { margin-bottom: 16px; }
-            .form-group label { display: block; margin-bottom: 6px; font-weight: 600; color: #333; }
-            .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; font-family: inherit; }
-            .form-group textarea { min-height: 150px; resize: vertical; }
-            .form-actions { display: flex; gap: 12px; margin-top: 20px; }
-            .btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: 600; }
-            .btn-primary { background: #667eea; color: white; }
-            .btn-primary:hover { background: #5568d3; }
-            .btn-secondary { background: #e0e0e0; color: #333; }
-            .btn-secondary:hover { background: #d0d0d0; }
-            .modules-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
-            .module-checkbox-label { cursor: pointer; }
-            .module-checkbox-badge { display: inline-block; padding: 6px 12px; background: #e0e0e0; color: #666; border-radius: 12px; font-size: 13px; transition: all 0.2s; user-select: none; }
-            .module-checkbox-label.selected .module-checkbox-badge { background: #e3f2fd; color: #1976d2; font-weight: 600; }
-            .module-checkbox-label:hover .module-checkbox-badge { background: #d0d0d0; }
-            .module-checkbox-label.selected:hover .module-checkbox-badge { background: #bbdefb; }
+            .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+            @media (max-width: 600px) {
+              body { padding: 6px 8px; }
+              .card { padding: 8px 6px; border-radius: 7px; }
+              h1 { font-size: 15px; }
+              .body { font-size: 13px; }
+              .answer-section { padding: 6px; }
+              .modules-status-row { gap: 4px; }
+              .module-badge, .status-badge { font-size: 11px; padding: 3px 6px; border-radius: 8px; }
+            }
           </style>
         </head>
         <body>
           <a href="{{ url_for('questions.list_questions') }}" class="back-link" id="back-link">← Назад к списку вопросов</a>
-          
           {% if question.id != 0 %}
-          <div class="card">
-            <div class="modules">
-              {% for module in modules %}
-                <span class="module-badge">{{ module.short_title or module.title }}</span>
-              {% endfor %}
-            </div>
-            
-            <div class="question-header">
-              <div>
-                {% if question.title %}
-                  <h1 style="margin: 0;">{{ question.title }}</h1>
-                {% else %}
-                  <h1 style="margin: 0;">Вопрос #{{ question.id }}</h1>
-                {% endif %}
+          <div class=\"card\">
+            <div class=\"modules-status-row\">
+              <div class=\"modules\">
+                {% for module in modules %}
+                  <span class=\"module-badge\">{{ module.short_title or module.title }}</span>
+                {% endfor %}
               </div>
-              <span class="status-badge status-{{ question.status.lower() }}">
+              <span class=\"status-badge status-{{ question.status.lower() }}\">
                 {{ get_status_label(question.status) }}
               </span>
             </div>
-            
-            <div class="meta">
-              ❤️ {{ votes_count }} голосов | 📅 {{ question.created_at.strftime('%d.%m.%Y %H:%M') }}
-            </div>
-            
-            <div class="body">{{ question.body }}</div>
-            
+            <h1>{{ question.title or ('Вопрос #' + question.id|string) }}</h1>
+            <div class=\"meta\">❤️ {{ votes_count }} голосов | 📅 {{ question.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            <div class=\"body\">{{ question.body }}</div>
             {% if answer %}
-              <div class="answer-section">
+              <div class=\"answer-section\">
                 <h2>✅ Итоговый ответ</h2>
-                
                 {% if answer.summary %}
-                  <div style="background: #f5f5f5; padding: 12px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #558b2f;">
-                    <strong style="color: #558b2f;">Краткий ответ:</strong>
-                    <p style="margin: 8px 0 0 0;">{{ answer.summary }}</p>
+                  <div style=\"background: #f5f5f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #558b2f; font-size: 13px;\">
+                    <strong style=\"color: #558b2f;\">Краткий ответ:</strong>
+                    <p style=\"margin: 6px 0 0 0;\">{{ answer.summary }}</p>
                   </div>
                 {% endif %}
-                
-                <div style="white-space: pre-wrap;">{{ answer.answer }}</div>
-                
+                <div style=\"white-space: pre-wrap; font-size: 13px;\">{{ answer.answer }}</div>
                 {% if answer.sources %}
-                  <p style="margin-top: 16px; font-size: 14px; color: #666;">
-                    📚 Источники: {{ answer.sources.text if answer.sources.text else answer.sources }}
-                  </p>
+                  <p style=\"margin-top: 10px; font-size: 12px; color: #666;\">📚 Источники: {{ answer.sources.text if answer.sources.text else answer.sources }}</p>
                 {% endif %}
               </div>
             {% endif %}
-            
             {% if user_role and user_role >= 1 %}
-              <div class="action-buttons">
-                <a href="#edit" class="edit-btn" onclick="document.getElementById('edit-form').style.display='block'; this.parentElement.style.display='none'; return false;">
-                  ✏️ Редактировать
-                </a>
-                
+              <div class=\"action-buttons\">
+                <a href=\"#edit\" class=\"edit-btn\" onclick=\"document.getElementById('edit-form').style.display='block'; this.parentElement.style.display='none'; return false;\">✏️ Редактировать</a>
                 {% if telegram_link and question.status == 'POSTED' %}
-                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">
-                    💬 Обсуждение ({{ messages_count - 1 if messages_count > 0 else 0 }})
-                  </a>
-                  <button onclick="closeDiscussion({{ question.id }})" class="close-discussion-btn" id="close-btn">
-                    🔒 Закрыть обсуждение
-                  </button>
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+                  <button onclick=\"closeDiscussion({{ question.id }})\" class=\"close-discussion-btn\" id=\"close-btn\">🔒 Закрыть обсуждение</button>
                 {% elif telegram_link and question.status == 'CLOSED' %}
-                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">
-                    💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})
-                  </a>
-                  <button onclick="archiveQuestion({{ question.id }})" class="archive-btn" id="archive-btn">
-                    📦 В архив
-                  </button>
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+                  <button onclick=\"archiveQuestion({{ question.id }})\" class=\"archive-btn\" id=\"archive-btn\">📦 В архив</button>
                 {% elif telegram_link %}
-                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">
-                    💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})
-                  </a>
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
                 {% elif question.status == 'VOTING' %}
-                  <button onclick="publishQuestion({{ question.id }})" class="telegram-btn" id="publish-btn" style="background: #26a69a;">
-                    📢 Опубликовать в Telegram
-                  </button>
+                  <button onclick=\"publishQuestion({{ question.id }})\" class=\"telegram-btn\" id=\"publish-btn\" style=\"background: #26a69a;\">📢 Опубликовать в Telegram</button>
                 {% endif %}
               </div>
             {% elif telegram_link %}
-              <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">
-                💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})
-              </a>
+              <a href=\"{{ telegram_link }}\" target=\"_blank\" class=\"telegram-btn\">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
             {% endif %}
           </div>
           {% endif %}
@@ -1632,10 +1617,16 @@ def question_detail(question_id: int):
                 <textarea id="body" name="body" required>{{ question.body }}</textarea>
               </div>
               
+
+
               <div class="form-group">
                 <label for="title">Краткий текст (для автозаполнения оставьте пустым):</label>
-                <input type="text" id="title" name="title" value="{{ question.title or '' }}">
+                <div style="display: flex; gap: 8px; align-items: flex-start;">
+                  <input type="text" id="title" name="title" value="{{ question.title or '' }}" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" id="generate-title-btn" style="height: 40px;">⚡ Сгенерировать</button>
+                </div>
                 <small style="color: #666;">Автоматически создается через AI на основе текста вопроса</small>
+                <div id="title-gen-status" style="color: #888; font-size: 13px; margin-top: 4px;"></div>
               </div>
               
               <div class="form-group">
@@ -1671,10 +1662,15 @@ def question_detail(question_id: int):
                   <small style="color: #666;">Подробный структурированный ответ после обсуждения</small>
                 </div>
                 
+
                 <div class="form-group">
                   <label for="summary">Краткий ответ (для автозаполнения оставьте пустым):</label>
-                  <textarea id="summary" name="summary" style="min-height: 80px;">{{ answer.summary if answer else '' }}</textarea>
+                  <div style="display: flex; gap: 8px; align-items: flex-start;">
+                    <textarea id="summary" name="summary" style="min-height: 80px; flex: 1;">{{ answer.summary if answer else '' }}</textarea>
+                    <button type="button" class="btn btn-secondary" id="generate-summary-btn" style="height: 40px;">⚡ Сгенерировать</button>
+                  </div>
                   <small style="color: #666;">Автоматически создается через AI на основе полного ответа</small>
+                  <div id="summary-gen-status" style="color: #888; font-size: 13px; margin-top: 4px;"></div>
                 </div>
                 
                 <div class="form-group">
@@ -1753,7 +1749,7 @@ def question_detail(question_id: int):
                 
                 const data = await response.json();
                 
-                if (data.success) {
+                if ( data.success) {
                   btn.innerHTML = '✅ Закрыто!';
                   btn.style.background = '#4caf50';
                   
@@ -1856,6 +1852,82 @@ def question_detail(question_id: int):
                 document.body.style.background = tg.themeParams.bg_color;
               }
             }
+
+            // Генерация краткого заголовка (title) по кнопке
+            document.addEventListener('DOMContentLoaded', function() {
+              const genTitleBtn = document.getElementById('generate-title-btn');
+              if (genTitleBtn) {
+                genTitleBtn.addEventListener('click', async function() {
+                  const bodyField = document.getElementById('body');
+                  const titleField = document.getElementById('title');
+                  const statusDiv = document.getElementById('title-gen-status');
+                  if (!bodyField || !titleField) return;
+                  const bodyText = bodyField.value.trim();
+                  if (!bodyText) {
+                    statusDiv.textContent = 'Сначала заполните текст вопроса.';
+                    return;
+                  }
+                  genTitleBtn.disabled = true;
+                  statusDiv.textContent = '⏳ Генерируется...';
+                  try {
+                    const resp = await fetch('/questions/generate-title', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ body_text: bodyText })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                      titleField.value = data.title;
+                      statusDiv.textContent = '✅ Краткий текст сгенерирован';
+                    } else {
+                      statusDiv.textContent = 'Ошибка: ' + (data.error || 'Не удалось сгенерировать');
+                    }
+                  } catch (e) {
+                    statusDiv.textContent = 'Ошибка сети: ' + e.message;
+                  } finally {
+                    genTitleBtn.disabled = false;
+                  }
+                });
+              }
+            });
+
+            // Генерация краткого ответа (summary) по кнопке
+            document.addEventListener('DOMContentLoaded', function() {
+              const genBtn = document.getElementById('generate-summary-btn');
+              if (genBtn) {
+                genBtn.addEventListener('click', async function() {
+                  const answerField = document.getElementById('answer');
+                  const summaryField = document.getElementById('summary');
+                  const statusDiv = document.getElementById('summary-gen-status');
+                  if (!answerField || !summaryField) return;
+                  const answerText = answerField.value.trim();
+                  if (!answerText) {
+                    statusDiv.textContent = 'Сначала заполните полный ответ.';
+                    return;
+                  }
+                  genBtn.disabled = true;
+                  statusDiv.textContent = '⏳ Генерируется...';
+                  try {
+                    const resp = await fetch('/questions/generate-summary', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ answer_text: answerText })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                      summaryField.value = data.summary;
+                      statusDiv.textContent = '✅ Краткий ответ сгенерирован';
+                    } else {
+                      statusDiv.textContent = 'Ошибка: ' + (data.error || 'Не удалось сгенерировать');
+                    }
+                  } catch (e) {
+                    statusDiv.textContent = 'Ошибка сети: ' + e.message;
+                  } finally {
+                    genBtn.disabled = false;
+                  }
+                });
+              }
+            });
           </script>
         </body>
         </html>
@@ -1893,7 +1965,7 @@ MINIAPP_TEMPLATE = """
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --tg-theme-bg-color: #ffffff;
+      --tg-theme-bg-color: #ffffff; 
       --tg-theme-text-color: #000000;
       --tg-theme-hint-color: #999999;
       --tg-theme-link-color: #2481cc;
@@ -2648,7 +2720,7 @@ def api_questions():
         if period_filter == 'last30':
           query = query.limit(30)
         
-        results = query.all()
+        results = query.all();
         
         # Собираем id всех вопросов
         question_ids = [q.id for q, *_ in results]
@@ -2674,25 +2746,27 @@ def api_questions():
         topics = db.query(TelegramTopic).filter(TelegramTopic.question_id.in_(question_ids)).all() if question_ids else []
         topics_by_qid = {t.question_id: t for t in topics}
 
-        questions_data = []
+        questions_data = [];
         for question, votes_count, my_vote in results:
           # Модули
-          modules = modules_by_qid.get(question.id, [])
+          modules = modules_by_qid.get(question.id, []);
           # Итоговый ответ
-          answer = answers_by_qid.get(question.id)
-          answer_preview = None
+          answer = answers_by_qid.get(question.id);
+          answer_preview = None;
           if answer and answer.answer:
             if len(answer.answer) > 300:
               answer_preview = answer.answer[:300] + '...'
             else:
               answer_preview = answer.answer
           # Telegram тема
-          telegram_link = None
-          messages_count = 0
-          topic = topics_by_qid.get(question.id)
+          telegram_link = None;
+          messages_count = 0;
+          topic = topics_by_qid.get(question.id);
           if topic:
             telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
-            messages_count = topic.messages_count or 0
+            messages_count = topic.messages_count or 0;
+            print(f"[DEBUG] Question {question.id}: messages_count = {messages_count}")
+          
           # Превью текста
           body_preview = question.body[:250] + '...' if len(question.body) > 250 else question.body
           questions_data.append({
@@ -2707,7 +2781,7 @@ def api_questions():
             'summary': answer_preview,
             'telegram_link': telegram_link,
             'messages_count': messages_count,
-            'created_at': question.created_at.isoformat()
+            'created_at': question.created_at.isoformat() if question.created_at else None
           })
         
         return jsonify({

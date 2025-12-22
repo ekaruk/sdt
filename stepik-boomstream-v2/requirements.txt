@@ -7,3 +7,4 @@ werkzeug
 python-dotenv
 python-telegram-bot==20.8
 httpx~=0.26.0
+openai==0.27.8

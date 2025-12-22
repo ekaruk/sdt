@@ -1,0 +1,30 @@
+pmpt_69482ba5e9b081979cebfabfcd6f2e91062e41f5f88a53ae
+
+from openai import OpenAI
+client = OpenAI()
+
+response = client.responses.create(
+  prompt={
+    "id": "pmpt_69482ba5e9b081979cebfabfcd6f2e91062e41f5f88a53ae",
+    "version": "2",
+    "variables": {
+      "answer_text": "example answer_text"
+    }
+  }
+)
+
+
+pmpt_694830cd25408197b5ae685690b2359906aff6cb9d790b6b
+
+from openai import OpenAI
+client = OpenAI()
+
+response = client.responses.create(
+  prompt={
+    "id": "pmpt_694830cd25408197b5ae685690b2359906aff6cb9d790b6b",
+    "version": "2",
+    "variables": {
+      "question_text": "example question_text"
+    }
+  }
+)
