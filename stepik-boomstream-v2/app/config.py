@@ -33,6 +33,8 @@ class Config:
     
     # OpenAI API для генерации заголовков
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large")
+    OPENAI_EMBEDDING_DIM = os.getenv("OPENAI_EMBEDDING_DIM")
     
     @classmethod
     def validate(cls):

@@ -1,11 +1,13 @@
-from flask import Blueprint, session, redirect, render_template_string, request, jsonify, url_for
+from flask import Blueprint, session, redirect, render_template, render_template_string, request, jsonify, url_for
 from sqlalchemy import func, exists, Integer, Boolean
 from sqlalchemy.orm import aliased
 from datetime import datetime, timedelta
+import urllib.parse
 from ..db import SessionLocal
-from ..models import Question, QuestionVote, QuestionStepikModule, StepikModule, TelegramUser, QuestionAnswer, TelegramTopic, User
+from ..models import Question, QuestionVote, QuestionStepikModule, StepikModule, TelegramUser, QuestionAnswer, TelegramTopic, User, QuestionEmbedding
 from ..telegram_auth import validate_webapp_init_data
 from ..config import Config
+from ..embeddings import upsert_question_embedding
 from openai import OpenAI
 import requests
 
@@ -710,6 +712,61 @@ def get_period_filter(period: str):
     return None
 
 
+def build_question_card_dict(question, modules, answer, topic, my_vote):
+    summary = answer.summary if answer and getattr(answer, 'summary', None) else None
+    telegram_link = None
+    messages_count = 0
+    if topic:
+        telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
+        messages_count = topic.messages_count or 0
+    body_preview = question.body[:300] + '...' if len(question.body) > 300 else question.body
+    return {
+        'id': question.id,
+        'title': question.title,
+        'body_preview': body_preview,
+        'status': question.status,
+        'status_label': get_status_label(question.status),
+        'votes_count': question.votes_count,
+        'my_vote': my_vote,
+        'modules': modules,
+        'summary': summary,
+        'telegram_link': telegram_link,
+        'messages_count': messages_count,
+        'created_at': question.created_at
+    }
+
+
+def get_similar_questions_by_modules(db, question_id, module_ids, limit=5):
+    if not module_ids:
+        return []
+    rows = (
+        db.query(QuestionStepikModule.question_id)
+        .filter(
+            QuestionStepikModule.module_id.in_(module_ids),
+            QuestionStepikModule.question_id != question_id
+        )
+        .distinct()
+        .limit(limit)
+        .all()
+    )
+    return [row[0] for row in rows]
+
+
+def get_similar_question_ids_by_embedding(db, question_id, embedding, limit=5):
+    try:
+        rows = (
+            db.query(QuestionEmbedding.question_id)
+            .filter(QuestionEmbedding.question_id != question_id)
+            .order_by(QuestionEmbedding.embedding.cosine_distance(embedding))
+            .limit(limit)
+            .all()
+        )
+        return [row[0] for row in rows]
+    except Exception as e:
+        print(f"[Embedding] Similar search failed: {e}")
+        return []
+
+
 
 # ============================================================================
 # ROUTES
@@ -733,6 +790,23 @@ def generate_summary_api():
 
 @questions_bp.route("", methods=["GET"])
 def list_questions():
+    if not session.get("user_id"):
+        init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
+        if request.args.get("tg_init_data"):
+            init_data = urllib.parse.unquote(init_data)
+        tg_user = validate_webapp_init_data(init_data) if init_data else None
+        if tg_user and tg_user.get('id'):
+            db_temp = SessionLocal()
+            try:
+                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
+                if user:
+                    session["user_id"] = user.id
+                    session.permanent = True
+            finally:
+                db_temp.close()
+        if not session.get("user_id") and not tg_user:
+            return redirect("/login")
+
     """Главная страница со списком вопросов и фильтрами."""
     
     # Получаем параметры фильтрации
@@ -888,8 +962,8 @@ def list_questions():
             if user:
                 user_role = user.role
         
-        return render_template_string(
-            QUESTIONS_PAGE_TEMPLATE,
+        return render_template(
+            "questions_list.html",
             questions=questions_data,
             modules=all_modules,
             current_topic=topic_filter,
@@ -962,21 +1036,19 @@ def vote(question_id: int):
         ).first()
         
         if existing_vote:
-            # Снимаем голос
+            # D­D«D,D¬DøDæD¬ D3D_D¯D_¥?
             db.delete(existing_vote)
             liked = False
         else:
-            # Ставим голос
+            # D­¥,DøDýD,D¬ D3D_D¯D_¥?
             new_vote = QuestionVote(
                 question_id=question_id,
                 telegram_user_id=telegram_user_id
             )
             db.add(new_vote)
             liked = True
-        
+
         db.commit()
-        
-        # Получаем votes_count из поля
         votes_count = db.query(Question.votes_count).filter(Question.id == question_id).scalar()
         
         # Для AJAX запросов возвращаем JSON
@@ -1301,6 +1373,23 @@ def archive_question(question_id):
 
 @questions_bp.route("/<int:question_id>", methods=["GET", "POST"])
 def question_detail(question_id: int):
+    if not session.get("user_id"):
+        init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
+        if request.args.get("tg_init_data"):
+            init_data = urllib.parse.unquote(init_data)
+        tg_user = validate_webapp_init_data(init_data) if init_data else None
+        if tg_user and tg_user.get('id'):
+            db_temp = SessionLocal()
+            try:
+                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
+                if user:
+                    session["user_id"] = user.id
+                    session.permanent = True
+            finally:
+                db_temp.close()
+        if not session.get("user_id") and not tg_user:
+            return redirect("/login")
+
     """Детальная страница вопроса с полным текстом и итоговым ответом."""
     
     # Получаем роль пользователя
@@ -1422,6 +1511,15 @@ def question_detail(question_id: int):
                     answer.answer = answer_text
                     answer.sources = sources_json
                     answer.updated_at = datetime.utcnow()
+
+            modules_for_embedding = []
+            if selected_modules:
+                module_ids = [int(m) for m in selected_modules]
+                modules_for_embedding = db.query(StepikModule).filter(StepikModule.id.in_(module_ids)).all()
+            try:
+                upsert_question_embedding(db, question, modules_for_embedding, answer_summary)
+            except Exception as e:
+                print(f"[Embedding] Update failed: {e}")
             
             db.commit()
             db.close()
@@ -1497,6 +1595,100 @@ def question_detail(question_id: int):
                     print(f"[DEBUG] Question {question_id}: messages_count = {messages_count}")
         
         # Простой шаблон для детальной страницы
+
+        telegram_user_id = None
+        if user_id:
+            user = db.query(User).filter_by(id=user_id).first()
+            if user:
+                telegram_user_id = user.telegram_id
+
+        similar_questions = []
+        if question_id != 0:
+            embedding_row = (
+                db.query(QuestionEmbedding)
+                .filter(QuestionEmbedding.question_id == question_id)
+                .first()
+            )
+            if not embedding_row:
+                try:
+                    answer_summary = None
+                    if answer and getattr(answer, 'summary', None):
+                        answer_summary = answer.summary
+                    if upsert_question_embedding(db, question, modules, answer_summary):
+                        db.commit()
+                    embedding_row = (
+                        db.query(QuestionEmbedding)
+                        .filter(QuestionEmbedding.question_id == question_id)
+                        .first()
+                    )
+                except Exception as e:
+                    print(f"[Embedding] Update failed: {e}")
+                    db.rollback()
+            if embedding_row:
+                similar_ids = get_similar_question_ids_by_embedding(
+                    db, question_id, embedding_row.embedding, limit=5
+                )
+            else:
+                similar_ids = []
+            if not similar_ids:
+                similar_ids = get_similar_questions_by_modules(
+                    db, question_id, selected_module_ids, limit=5
+                )
+            if similar_ids:
+                similar_qs = db.query(Question).filter(Question.id.in_(similar_ids)).all()
+                q_map = {q.id: q for q in similar_qs}
+
+                qsm = (
+                    db.query(QuestionStepikModule)
+                    .filter(QuestionStepikModule.question_id.in_(similar_ids))
+                    .all()
+                )
+                module_ids = list({m.module_id for m in qsm})
+                modules_list = (
+                    db.query(StepikModule).filter(StepikModule.id.in_(module_ids)).all()
+                    if module_ids else []
+                )
+                modules_dict = {m.id: m for m in modules_list}
+                modules_by_qid = {}
+                for m in qsm:
+                    modules_by_qid.setdefault(m.question_id, []).append(modules_dict.get(m.module_id))
+                for qid in modules_by_qid:
+                    modules_by_qid[qid] = sorted(
+                        [mod for mod in modules_by_qid[qid] if mod],
+                        key=lambda m: m.position
+                    )
+
+                answers = db.query(QuestionAnswer).filter(QuestionAnswer.question_id.in_(similar_ids)).all()
+                answers_by_qid = {a.question_id: a for a in answers}
+
+                topics = db.query(TelegramTopic).filter(TelegramTopic.question_id.in_(similar_ids)).all()
+                topics_by_qid = {t.question_id: t for t in topics}
+
+                my_votes = set()
+                if telegram_user_id:
+                    my_votes = {
+                        row[0] for row in db.query(QuestionVote.question_id)
+                        .filter(
+                            QuestionVote.telegram_user_id == telegram_user_id,
+                            QuestionVote.question_id.in_(similar_ids)
+                        )
+                        .all()
+                    }
+
+                for qid in similar_ids:
+                    q = q_map.get(qid)
+                    if not q:
+                        continue
+                    similar_questions.append(
+                        build_question_card_dict(
+                            q,
+                            modules_by_qid.get(qid, []),
+                            answers_by_qid.get(qid),
+                            topics_by_qid.get(qid),
+                            qid in my_votes
+                        )
+                    )
+
         detail_template = """
         <!doctype html>
         <html lang="ru">
@@ -1979,8 +2171,8 @@ def question_detail(question_id: int):
         </html>
         """
         
-        return render_template_string(
-            detail_template,
+        return render_template(
+            "questions_detail.html",
             question=question,
             modules=modules,
             all_modules=all_modules,
@@ -1990,6 +2182,7 @@ def question_detail(question_id: int):
             telegram_link=telegram_link,
             messages_count=messages_count,
             user_role=user_role,
+            similar_questions=similar_questions,
             get_status_label=get_status_label
         )
         
@@ -2108,6 +2301,7 @@ MINIAPP_TEMPLATE = """
       background: var(--tg-theme-secondary-bg-color);
       border-radius: 8px;
       padding: 10px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
       transition: opacity 0.2s;
     }
     
@@ -2133,6 +2327,24 @@ MINIAPP_TEMPLATE = """
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
+    }
+
+    .view-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--tg-theme-button-color);
+      color: var(--tg-theme-button-text-color);
+      text-decoration: none;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+    
+    .view-btn:active {
+      transform: scale(0.95);
     }
     
     .question-modules {
@@ -2454,6 +2666,7 @@ MINIAPP_TEMPLATE = """
                   </div>
                 </div>
                 <div class="question-header-right">
+                  <a href="/questions/${q.id}?tg_init_data=${encodeURIComponent(initData)}" class="view-btn">📖</a>
                   <span class="status-badge status-${q.status.toLowerCase()}" onclick="filterByStatus('${q.status}')">${q.status_label}</span>
                   <button class="vote-button ${q.my_vote ? 'voted' : ''}" 
                           data-question-id="${q.id}" 
@@ -2467,8 +2680,7 @@ MINIAPP_TEMPLATE = """
               ${q.title ? `<div class="question-title">${q.title}</div>` : ''}
               
               <div class="question-body">${q.body_preview}</div>
-              
-              ${q.summary ? `
+                            ${q.summary ? `
                 <div class="summary-block">
                   <strong>✅ Итог</strong>
                   <p>${q.summary}</p>
@@ -2692,6 +2904,18 @@ def api_questions():
     # Получаем initData из заголовка
     init_data = request.headers.get('X-Telegram-Init-Data', '')
     telegram_user_id = None
+    if not session.get("user_id"):
+        tg_user = validate_webapp_init_data(init_data) if init_data else None
+        if tg_user and tg_user.get('id'):
+            db_temp = SessionLocal()
+            try:
+                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
+                if user:
+                    session["user_id"] = user.id
+                    session.permanent = True
+            finally:
+                db_temp.close()
+
     
     # Простая валидация: извлекаем user_id из initData
     # ВРЕМЕННО: отключаем строгую валидацию для тестирования
