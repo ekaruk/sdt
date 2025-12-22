@@ -1,0 +1,520 @@
+{% from 'questions/_question_card.html' import render_question_card %}
+
+        <!doctype html>
+        <html lang="ru">
+
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>{{ question.title or 'Вопрос #' + question.id|string }}</title>
+          <script src="https://telegram.org/js/telegram-web-app.js"></script>
+          <style>
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              max-width: 700px;
+              margin: 0 auto;
+              padding: 8px 5px; /* увеличенные отступы по краям */
+              line-height: 1.5;
+              background: #f5f5f5;
+            }
+            .back-link { display: inline-block; margin-bottom: 12px; color: #667eea; text-decoration: none; font-size: 15px; }
+            .back-link:hover { text-decoration: underline; }
+            .card { background: white; padding: 12px 10px; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); border: 1px solid rgba(0, 0, 0, 0.08); }
+
+            .similar-questions { margin-top: 16px; }
+            .section-title { font-size: 16px; margin: 16px 0 10px; color: #222; }
+            .questions-list { display: flex; flex-direction: column; gap: 16px; }
+            .question-card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(0, 0, 0, 0.08); }
+            .question-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); }
+            .question-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 12px; }
+            .question-header-left { flex: 1; min-width: 0; }
+            .question-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+            .question-modules { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+            .question-title { font-size: 17px; font-weight: 600; color: #222; margin-bottom: 8px; }
+            .question-body { color: #555; font-size: 14px; line-height: 1.5; margin-bottom: 12px; }
+            .vote-button { display: flex; align-items: center; gap: 6px; background: none; border: none; cursor: pointer; font-size: 15px; padding: 6px 12px; border-radius: 20px; transition: all 0.2s; }
+            .vote-button:hover { background: #f5f5f5; }
+            .vote-button.voted { color: #e91e63; }
+            .summary-block { background: #f9fbe7; border-left: 4px solid #9ccc65; padding: 10px; margin-top: 12px; border-radius: 4px; }
+            .summary-block strong { color: #558b2f; display: block; margin-bottom: 6px; }
+            .read-more-btn { display: inline-block; margin-top: 8px; color: #558b2f; text-decoration: none; font-weight: 600; font-size: 13px; }
+            .read-more-btn:hover { text-decoration: underline; }
+            .telegram-link { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #0088cc; color: white; text-decoration: none; border-radius: 6px; font-size: 12px; }
+            .telegram-link:hover { background: #006699; }
+            /* --- EDIT FORM FIELDS: убираем ограничения, делаем ширину 100% --- */
+            .edit-form .form-group input[type="text"],
+            .edit-form .form-group select,
+            .edit-form .form-group textarea {
+              width: 100%;
+              box-sizing: border-box;
+              font-size: 15px;
+              border-radius: 8px;
+              border: 1px solid #e0e0e0;
+              padding: 8px 5px;
+              resize: vertical;
+              background: #fff;
+              color: #222;
+              margin: 0;
+            }
+            .edit-form .form-group textarea#body { min-height: 180px; }
+            .edit-form .form-group textarea#answer { min-height: 220px; }
+            .edit-form .form-group textarea#summary { min-height: 80px; }
+            /* Убираем все мобильные/миниапп-специфичные стили для edit-form */
+            .modules-status-row {
+              display: flex;
+              justify-content: space-between;
+              align-items: flex-start; /* keep status aligned to top */
+              margin-bottom: 8px;
+              gap: 8px;
+            }
+            .modules { display: flex; gap: 6px; overflow: hidden; min-width: 0; }
+            .module-badge { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; flex: 0 0 auto; text-overflow: ellipsis; overflow: hidden; max-width: 160px; }
+            .status-badge { padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; align-self: flex-start; margin-left: 8px; flex: 0 0 auto; }
+            .similar-questions .status-badge { align-self: center; margin-left: 0; }
+            .similar-questions .question-header { align-items: center; }
+            .similar-questions .question-modules { margin-bottom: 0; align-items: center; }
+            .status-voting { background: #fff3e0; color: #f57c00; }
+            .status-scheduled { background: #e1f5fe; color: #0288d1; }
+            .status-posted { background: #e8f5e9; color: #388e3c; }
+            .status-closed { background: #f3e5f5; color: #7b1fa2; }
+            .status-archived { background: #ede7f6; color: #512da8; }
+            h1 { margin: 0 0 8px 0; color: #222; font-size: 19px; line-height: 1.2; }
+            .meta { color: #999; font-size: 12px; margin-bottom: 8px; }
+            .body { white-space: pre-wrap; margin-bottom: 12px; color: #333; font-size: 15px; }
+            .answer-section { background: #f9fbe7; border-left: 3px solid #9ccc65; padding: 10px; border-radius: 4px; margin-top: 12px; }
+            .answer-section h2 { color: #558b2f; margin-bottom: 8px; font-size: 15px; }
+            .telegram-btn { display: inline-block; padding: 8px 16px; background: #0088cc; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; border: none; cursor: pointer; font-size: 13px; }
+            .telegram-btn:hover { background: #006699; }
+            .edit-btn { display: inline-block; padding: 7px 14px; background: #667eea; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; font-size: 13px; }
+            .edit-btn:hover { background: #5568d3; }
+            .similar-questions .edit-btn {
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 24px;
+              height: 24px;
+              background: #c9d4ff;
+              color: #2a3fb3;
+              border-radius: 50%;
+              font-size: 12px;
+              padding: 0;
+              margin-top: 0;
+              line-height: 1;
+            }
+            .similar-questions .edit-btn:hover {
+              background: #b9c7ff;
+            }
+            .close-discussion-btn, .archive-btn { display: inline-block; padding: 7px 14px; color: white; text-decoration: none; border-radius: 7px; margin-top: 10px; border: none; cursor: pointer; font-size: 13px; }
+            .close-discussion-btn { background: #f44336; }
+            .close-discussion-btn:hover { background: #d32f2f; }
+            .archive-btn { background: #9c27b0; }
+            .archive-btn:hover { background: #7b1fa2; }
+            .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+            /* @media (max-width: 600px) { ... } — удалено для edit-form */
+          </style>
+        </head>
+        <body>
+          <a href="{{ url_for('questions.list_questions') }}" class="back-link" id="back-link">← Назад к списку вопросов</a>
+          {% if question.id != 0 %}
+          <div class="card">
+            <div class="modules-status-row">
+              <div class="modules">
+                {% for module in modules %}
+                  <span class="module-badge">{{ module.short_title or module.title }}</span>
+                {% endfor %}
+              </div>
+              <span class="status-badge status-{{ question.status.lower() }}">
+                {{ get_status_label(question.status) }}
+              </span>
+            </div>
+            <h1>{{ question.title or ('Вопрос #' + question.id|string) }}</h1>
+            <div class="meta">❤️ {{ votes_count }} голосов | 📅 {{ question.created_at.strftime('%d.%m.%Y %H:%M') }}</div>
+            <div class="body">{{ question.body }}</div>
+            {% if answer %}
+              <div class="answer-section">
+                <h2>✅ Итоговый ответ</h2>
+                {% if answer.summary %}
+                  <div style="background: #f5f5f5; padding: 8px; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #558b2f; font-size: 13px;">
+                    <strong style="color: #558b2f;">Краткий ответ:</strong>
+                    <p style="margin: 6px 0 0 0;">{{ answer.summary }}</p>
+                  </div>
+                {% endif %}
+                <div style="white-space: pre-wrap; font-size: 13px;">{{ answer.answer }}</div>
+                {% if answer.sources %}
+                  <p style="margin-top: 10px; font-size: 12px; color: #666;">📚 Источники: {{ answer.sources.text if answer.sources.text else answer.sources }}</p>
+                {% endif %}
+              </div>
+            {% endif %}
+            {% if user_role and user_role >= 1 %}
+              <div class="action-buttons">
+                <a href="#edit" class="edit-btn" onclick="document.getElementById('edit-form').style.display='block'; const similarBlock = document.getElementById('similar-questions'); if (similarBlock) { similarBlock.style.display = 'none'; } this.parentElement.style.display='none'; return false;">✏️ Редактировать</a>
+                {% if telegram_link and question.status == 'POSTED' %}
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+                  <button onclick="closeDiscussion({{ question.id }})" class="close-discussion-btn" id="close-btn">🔒 Закрыть обсуждение</button>
+                {% elif telegram_link and question.status == 'CLOSED' %}
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+                  <button onclick="archiveQuestion({{ question.id }})" class="archive-btn" id="archive-btn">📦 В архив</button>
+                {% elif telegram_link %}
+                  <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+                {% elif question.status == 'VOTING' %}
+                  <button onclick="publishQuestion({{ question.id }})" class="telegram-btn" id="publish-btn" style="background: #26a69a;">📢 Опубликовать в Telegram</button>
+                {% endif %}
+              </div>
+            {% elif telegram_link %}
+              <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+            {% endif %}
+          </div>
+
+          {% if similar_questions %}
+          <div class="similar-questions" id="similar-questions">
+            <h3 class="section-title">Похожие вопросы</h3>
+            <div class="questions-list">
+              {% for q in similar_questions %}
+                {{ render_question_card(q, 'all', 'all', 'all', user_role) }}
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+          {% endif %}
+          
+          {% if user_role and user_role >= 1 %}
+          <div id="edit-form" class="edit-form" style="display: {% if question.id == 0 or '#edit' in request.url %}block{% else %}none{% endif %};">
+            <h2>{% if question.id == 0 %}Создание нового вопроса{% else %}Редактирование вопроса{% endif %}</h2>
+            <form method="post" action="{{ url_for('questions.question_detail', question_id=question.id) }}">
+              <div class="form-group">
+                <label for="body">Текст вопроса:</label>
+                <textarea id="body" name="body" required>{{ question.body }}</textarea>
+              </div>
+              
+
+
+              <div class="form-group">
+                <label for="title">Краткий текст (для автозаполнения оставьте пустым):</label>
+                <div style="display: flex; gap: 8px; align-items: flex-start;">
+                  <input type="text" id="title" name="title" value="{{ question.title or '' }}" style="flex: 1;">
+                  <button type="button" class="btn btn-secondary" id="generate-title-btn" style="height: 40px;">⚡ Сгенерировать</button>
+                </div>
+                <small style="color: #666;">Автоматически создается через AI на основе текста вопроса</small>
+                <div id="title-gen-status" style="color: #888; font-size: 13px; margin-top: 4px;"></div>
+              </div>
+              
+              <div class="form-group">
+                <label for="status">Статус:</label>
+                <select id="status" name="status" onchange="toggleAnswerSection()">
+                  <option value="VOTING" {% if question.status == 'VOTING' %}selected{% endif %}>В голосовании</option>
+                  <option value="POSTED" {% if question.status == 'POSTED' %}selected{% endif %}>В обсуждении</option>
+                  <option value="CLOSED" {% if question.status == 'CLOSED' %}selected{% endif %}>Закрыто</option>
+                  <option value="ARCHIVED" {% if question.status == 'ARCHIVED' %}selected{% endif %}>Архив</option>
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label>Разделы курса:</label>
+                <div class="modules-selector">
+                  {% for module in all_modules %}
+                    <label class="module-checkbox-label {% if module.id in selected_module_ids %}selected{% endif %}" data-module-id="{{ module.id }}">
+                      <input type="checkbox" name="modules" value="{{ module.id }}" {% if module.id in selected_module_ids %}checked{% endif %} style="display: none;">
+                      <span class="module-checkbox-badge">{{ module.short_title or module.title }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <div id="answer-section" style="display: {% if question.status in ['CLOSED', 'ARCHIVED'] %}block{% else %}none{% endif %};">
+                <hr style="margin: 24px 0; border: none; border-top: 1px solid #ddd;">
+                
+                <h3 style="color: #558b2f; margin-bottom: 16px;">Итоговый ответ</h3>
+                
+                <div class="form-group">
+                  <label for="answer">Полный ответ:</label>
+                  <textarea id="answer" name="answer" style="min-height: 200px;">{{ answer.answer if answer else '' }}</textarea>
+                  <small style="color: #666;">Подробный структурированный ответ после обсуждения</small>
+                </div>
+                
+
+                <div class="form-group">
+                  <label for="summary">Краткий ответ (для автозаполнения оставьте пустым):</label>
+                  <div style="display: flex; gap: 8px; align-items: flex-start;">
+                    <textarea id="summary" name="summary" style="min-height: 80px; flex: 1;">{{ answer.summary if answer else '' }}</textarea>
+                    <button type="button" class="btn btn-secondary" id="generate-summary-btn" style="height: 40px;">⚡ Сгенерировать</button>
+                  </div>
+                  <small style="color: #666;">Автоматически создается через AI на основе полного ответа</small>
+                  <div id="summary-gen-status" style="color: #888; font-size: 13px; margin-top: 4px;"></div>
+                </div>
+                
+                <div class="form-group">
+                  <label for="sources">Источники (ссылки на уроки, сообщения):</label>
+                  <input type="text" id="sources" name="sources" value="{{ answer.sources.text if (answer and answer.sources and answer.sources.text) else '' }}" placeholder="Урок 10, сообщение в форуме, https://...">
+                  <small style="color: #666;">Укажите источники информации для ответа</small>
+                </div>
+              </div>
+              
+              <div class="form-actions" style="display: flex; gap: 10px; margin-top: 18px;">
+                <button type="submit" class="edit-btn" style="background: #667eea; color: #fff; border: none; border-radius: 8px; padding: 10px 22px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s;">
+                  💾 Сохранить
+                </button>
+                <button type="button" class="cancel-btn" style="background: #f5f5f5; color: #667eea; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 22px; font-size: 15px; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                  onclick="document.getElementById('edit-form').style.display='none'; const actionButtons = document.querySelector('.action-buttons'); if (actionButtons) actionButtons.style.display='flex'; const similarBlock = document.getElementById('similar-questions'); if (similarBlock) { similarBlock.style.display = 'block'; }">
+                  Отмена
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {% endif %}
+          
+          <script>
+            // Публикация вопроса в Telegram
+            async function publishQuestion(questionId) {
+              const btn = document.getElementById('publish-btn');
+              if (!btn) return;
+              
+              const originalText = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML = '⏳ Публикуем...';
+              
+              try {
+                const response = await fetch(`/questions/${questionId}/publish`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                  btn.innerHTML = '✅ Опубликовано!';
+                  btn.style.background = '#4caf50';
+                  
+                  // Перезагружаем страницу через 1 секунду
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1000);
+                } else {
+                  alert('Ошибка: ' + (data.error || 'Не удалось опубликовать'));
+                  btn.disabled = false;
+                  btn.innerHTML = originalText;
+                }
+              } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+              }
+            }
+            
+            // Закрытие обсуждения в Telegram
+            async function closeDiscussion(questionId) {
+              if (!confirm('Вы уверены, что хотите закрыть обсуждение? Это действие нельзя отменить.')) {
+                return;
+              }
+              
+              const btn = document.getElementById('close-btn');
+              const originalText = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML = '⏳ Закрываем...';
+              
+              try {
+                const response = await fetch(`/questions/${questionId}/close-discussion`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
+                
+                const data = await response.json();
+                
+                if ( data.success) {
+                  btn.innerHTML = '✅ Закрыто!';
+                  btn.style.background = '#4caf50';
+                  
+                  // Перезагружаем страницу через 1 секунду
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1000);
+                } else {
+                  alert('Ошибка: ' + (data.error || 'Не удалось закрыть обсуждение'));
+                  btn.disabled = false;
+                  btn.innerHTML = originalText;
+                }
+              } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+              }
+            }
+            
+            // Архивирование вопроса
+            async function archiveQuestion(questionId) {
+              if (!confirm('Вопрос будет перемещен в архив. Убедитесь, что итоговый ответ заполнен. Продолжить?')) {
+                return;
+              }
+              
+              const btn = document.getElementById('archive-btn');
+              const originalText = btn.innerHTML;
+              btn.disabled = true;
+              btn.innerHTML = '⏳ Архивируем...';
+              
+              try {
+                const response = await fetch(`/questions/${questionId}/archive`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                  btn.innerHTML = '✅ В архиве!';
+                  btn.style.background = '#4caf50';
+                  
+                  // Перезагружаем страницу через 1 секунду
+                  setTimeout(() => {
+                    window.location.reload();
+                  }, 1000);
+                } else {
+                  alert('Ошибка: ' + (data.error || 'Не удалось архивировать'));
+                  btn.disabled = false;
+                  btn.innerHTML = originalText;
+                }
+              } catch (error) {
+                alert('Ошибка сети: ' + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+              }
+            }
+            
+            // Показ/скрытие раздела итогового ответа в зависимости от статуса
+            function toggleAnswerSection() {
+              const status = document.getElementById('status').value;
+              const answerSection = document.getElementById('answer-section');
+              
+              if (status === 'CLOSED' || status === 'ARCHIVED') {
+                answerSection.style.display = 'block';
+              } else {
+                answerSection.style.display = 'none';
+              }
+            }
+            
+            // Toggle модулей при клике
+            document.addEventListener('DOMContentLoaded', function() {
+              document.querySelectorAll('.module-checkbox-label').forEach(label => {
+                label.addEventListener('click', function(e) {
+                  e.preventDefault(); // Предотвращаем автоматическое переключение label
+                  
+                  const checkbox = this.querySelector('input[type="checkbox"]');
+                  checkbox.checked = !checkbox.checked;
+                  this.classList.toggle('selected');
+                });
+              });
+            
+            // Hide similar questions when edit form is visible (hash-based edit or create).
+            document.addEventListener('DOMContentLoaded', function() {
+              const similarBlock = document.getElementById('similar-questions');
+              const editForm = document.getElementById('edit-form');
+              const shouldHide = (window.location.hash === '#edit') || (editForm && editForm.style.display === 'block');
+              if (similarBlock && shouldHide) {
+                similarBlock.style.display = 'none';
+              }
+            });
+
+            });
+            
+            // Проверяем, открыто ли в Telegram WebApp
+            if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+              const tg = window.Telegram.WebApp;
+              tg.ready();
+              tg.expand();
+              
+              // Меняем ссылку "Назад" на Mini App версию
+              const backLink = document.getElementById('back-link');
+              if (backLink) {
+                backLink.href = '{{ url_for("questions.miniapp") }}';
+              }
+              
+              // Применяем цветовую схему Telegram
+              if (tg.themeParams.bg_color) {
+                document.body.style.background = tg.themeParams.bg_color;
+              }
+            }
+
+            // Генерация краткого заголовка (title) по кнопке
+            document.addEventListener('DOMContentLoaded', function() {
+              const genTitleBtn = document.getElementById('generate-title-btn');
+              if (genTitleBtn) {
+                genTitleBtn.addEventListener('click', async function() {
+                  const bodyField = document.getElementById('body');
+                  const titleField = document.getElementById('title');
+                  const statusDiv = document.getElementById('title-gen-status');
+                  if (!bodyField || !titleField) return;
+                  const bodyText = bodyField.value.trim();
+                  if (!bodyText) {
+                    statusDiv.textContent = 'Сначала заполните текст вопроса.';
+                    return;
+                  }
+                  genTitleBtn.disabled = true;
+                  statusDiv.textContent = '⏳ Генерируется...';
+                  try {
+                    const resp = await fetch('/questions/generate-title', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ body_text: bodyText })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                      titleField.value = data.title;
+                      statusDiv.textContent = '✅ Краткий текст сгенерирован';
+                    } else {
+                      statusDiv.textContent = 'Ошибка: ' + (data.error || 'Не удалось сгенерировать');
+                    }
+                  } catch (e) {
+                    statusDiv.textContent = 'Ошибка сети: ' + e.message;
+                  } finally {
+                    genTitleBtn.disabled = false;
+                  }
+                });
+              }
+            });
+
+            // Генерация краткого ответа (summary) по кнопке
+            document.addEventListener('DOMContentLoaded', function() {
+              const genBtn = document.getElementById('generate-summary-btn');
+              if (genBtn) {
+                genBtn.addEventListener('click', async function() {
+                  const answerField = document.getElementById('answer');
+                  const summaryField = document.getElementById('summary');
+                  const statusDiv = document.getElementById('summary-gen-status');
+                  if (!answerField || !summaryField) return;
+                  const answerText = answerField.value.trim();
+                  if (!answerText) {
+                    statusDiv.textContent = 'Сначала заполните полный ответ.';
+                    return;
+                  }
+                  genBtn.disabled = true;
+                  statusDiv.textContent = '⏳ Генерируется...';
+                  try {
+                    const resp = await fetch('/questions/generate-summary', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ answer_text: answerText })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                      summaryField.value = data.summary;
+                      statusDiv.textContent = '✅ Краткий ответ сгенерирован';
+                    } else {
+                      statusDiv.textContent = 'Ошибка: ' + (data.error || 'Не удалось сгенерировать');
+                    }
+                  } catch (e) {
+                    statusDiv.textContent = 'Ошибка сети: ' + e.message;
+                  } finally {
+                    genBtn.disabled = false;
+                  }
+                });
+              }
+            });
+          </script>
+        </body>
+        </html>
+        

@@ -1,0 +1,475 @@
+{% from 'questions/_question_card.html' import render_question_card %}
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📚 Вопросы курса</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      padding-bottom: 40px;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    
+    .header .subtitle {
+      opacity: 0.9;
+      font-size: 14px;
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    /* Фильтры */
+    .filters {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .filter-row {
+      margin-bottom: 15px;
+    }
+    
+    .filter-row:last-child {
+      margin-bottom: 0;
+    }
+    
+    .filter-label {
+      font-weight: 600;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 8px;
+      display: block;
+    }
+    
+    .filter-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .filter-btn {
+      padding: 6px 12px;
+      border: 1px solid #e0e0e0;
+      background: white;
+      border-radius: 16px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.2s;
+      text-decoration: none;
+      color: #333;
+      display: inline-block;
+    }
+    
+    .filter-btn:hover {
+      border-color: #667eea;
+      color: #667eea;
+    }
+    
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    /* Карточки вопросов */
+    .questions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .question-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .question-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+      gap: 12px;
+    }
+    
+    .question-header-left {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .question-header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    
+    .question-modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    
+    .module-badge {
+      background: #e3f2fd;
+      color: #1976d2;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .module-badge:hover {
+      background: #1976d2;
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .status-badge:hover {
+      transform: translateY(-1px);
+      opacity: 0.8;
+    }
+    
+    .status-voting { background: #fff3e0; color: #f57c00; }
+    .status-scheduled { background: #e1f5fe; color: #0288d1; }
+    .status-posted { background: #e8f5e9; color: #388e3c; }
+    .status-closed { background: #f3e5f5; color: #7b1fa2; }
+    .status-archived { background: #ede7f6; color: #512da8; }
+    
+    .question-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: #222;
+      margin-bottom: 8px;
+    }
+    
+    .question-body {
+      color: #555;
+      font-size: 15px;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+    
+    .vote-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    
+    .vote-button:hover {
+      background: #f5f5f5;
+    }
+    
+    .vote-button.voted {
+      color: #e91e63;
+    }
+    
+    .vote-button.voted .heart {
+      animation: heartbeat 0.3s;
+    }
+    
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+    }
+    
+    .summary-block {
+      background: #f9fbe7;
+      border-left: 4px solid #9ccc65;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 4px;
+    }
+    
+    .summary-block strong {
+      color: #558b2f;
+      display: block;
+      margin-bottom: 6px;
+    }
+    
+    .read-more-btn {
+      display: inline-block;
+      margin-top: 8px;
+      color: #558b2f;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    
+    .read-more-btn:hover {
+      text-decoration: underline;
+    }
+    
+    .telegram-link {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: #0088cc;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+    
+    .telegram-link:hover {
+      background: #006699;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+    
+    .empty-state-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+    
+    .edit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      background: #c9d4ff;
+      color: #2a3fb3;
+      text-decoration: none;
+      border-radius: 50%;
+      font-size: 14px;
+      transition: all 0.2s;
+      margin-right: 8px;
+    }
+    
+    .edit-btn:hover {
+      background: #b9c7ff;
+    }
+    
+    .add-question-btn {
+      display: block;
+      width: fit-content;
+      margin: 20px auto;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+      transition: all 0.3s;
+    }
+    
+    .add-question-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Адаптив */
+    @media (max-width: 600px) {
+      .container { padding: 12px; }
+      .header { padding: 16px; }
+      .header h1 { font-size: 20px; }
+      .question-card { padding: 16px; }
+      .filter-buttons { font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📚 Вопросы курса</h1>
+    <div class="subtitle">Голосуйте за интересные вопросы — самые популярные обсуждаются в группе</div>
+  </div>
+  
+  <div class="container">
+    <!-- Фильтры -->
+    <div class="filters">
+      <!-- Строка 1: Темы -->
+      <div class="filter-row">
+        <div class="filter-label">📌 Тема:</div>
+        <div class="filter-buttons">
+          <a href="{{ url_for('questions.list_questions', status=current_status, period=current_period) }}" 
+             class="filter-btn {% if current_topic == 'all' %}active{% endif %}">Все</a>
+          {% for module in modules %}
+            <a href="{{ url_for('questions.list_questions', topic=module.id, status=current_status, period=current_period) }}" 
+               class="filter-btn {% if current_topic == module.id|string %}active{% endif %}">
+              {{ module.title }}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+      
+      <!-- Строка 2: Статусы -->
+      <div class="filter-row">
+        <div class="filter-label">🔖 Статус:</div>
+        <div class="filter-buttons">
+          <a href="{{ url_for('questions.list_questions', topic=current_topic, period=current_period) }}" 
+             class="filter-btn {% if current_status == 'all' %}active{% endif %}">Все</a>
+          <a href="{{ url_for('questions.list_questions', topic=current_topic, status='VOTING', period=current_period) }}" 
+             class="filter-btn {% if current_status == 'VOTING' %}active{% endif %}">В голосовании</a>
+          <a href="{{ url_for('questions.list_questions', topic=current_topic, status='POSTED', period=current_period) }}" 
+             class="filter-btn {% if current_status == 'POSTED' %}active{% endif %}">В обсуждении</a>
+          <a href="{{ url_for('questions.list_questions', topic=current_topic, status='CLOSED', period=current_period) }}" 
+             class="filter-btn {% if current_status == 'CLOSED' %}active{% endif %}">Закрыто</a>
+          <a href="{{ url_for('questions.list_questions', topic=current_topic, status='ARCHIVED', period=current_period) }}" 
+             class="filter-btn {% if current_status == 'ARCHIVED' %}active{% endif %}">Архив</a>
+        </div>
+      </div>
+      
+      <!-- Строка 3: Период -->
+      <div class="filter-row">
+        <div class="filter-label">📅 Период:</div>
+        <div class="filter-buttons">
+           <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status) }}" 
+             class="filter-btn {% if current_period == 'all' %}active{% endif %}">Все время</a>
+           <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='last30') }}" 
+             class="filter-btn {% if current_period == 'last30' %}active{% endif %}">Последние 30</a>
+           <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='week') }}" 
+             class="filter-btn {% if current_period == 'week' %}active{% endif %}">За неделю</a>
+           <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='month') }}" 
+             class="filter-btn {% if current_period == 'month' %}active{% endif %}">За месяц</a>
+           <a href="{{ url_for('questions.list_questions', topic=current_topic, status=current_status, period='year') }}" 
+             class="filter-btn {% if current_period == 'year' %}active{% endif %}">За год</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Список вопросов -->
+    
+    <div class="questions-list">
+      {% if questions %}
+        {% for q in questions %}
+          {{ render_question_card(q, current_status, current_period, current_topic, user_role) }}
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">??</div>
+          <h3>???????? ?? ???????</h3>
+          <p>?????????? ???????? ??????? ??? ??????? ?????? ??????!</p>
+        </div>
+      {% endif %}
+    </div>
+
+    {% if user_role and user_role >= 1 %}
+      <a href="{{ url_for('questions.question_detail', question_id=0) }}" class="add-question-btn">
+        ➕ Добавить вопрос
+      </a>
+    {% endif %}
+  </div>
+  
+  <script>
+    // AJAX для голосования (progressive enhancement)
+    document.querySelectorAll('.vote-form').forEach(form => {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const button = form.querySelector('.vote-button');
+        const questionId = button.dataset.questionId;
+        const heart = button.querySelector('.heart');
+        const voteCount = button.querySelector('.vote-count');
+        
+        try {
+          const response = await fetch(`/questions/${questionId}/vote`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          });
+          
+          if (!response.ok) {
+            // Если ошибка авторизации - редирект на login
+            if (response.status === 401) {
+              window.location.href = '/login';
+              return;
+            }
+            throw new Error('Ошибка голосования');
+          }
+          
+          const data = await response.json();
+          
+          // Обновляем UI
+          button.classList.toggle('voted', data.liked);
+          heart.textContent = data.liked ? '❤️' : '🤍';
+          voteCount.textContent = data.votes_count;
+          
+        } catch (error) {
+          console.error('Vote error:', error);
+          // Fallback на обычную отправку формы
+          form.submit();
+        }
+      });
+    });
+    
+    // Предотвращаем переход по ссылке если она ведёт на текущую страницу
+    document.querySelectorAll('.filter-btn, .module-badge, .status-badge').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const linkUrl = new URL(link.href);
+        const currentUrl = new URL(window.location.href);
+        
+        // Сравниваем pathname и параметры запроса
+        if (linkUrl.pathname === currentUrl.pathname && 
+            linkUrl.search === currentUrl.search) {
+          e.preventDefault();
+          return false;
+        }
+      });
+    });
+  </script>
+</body>
+</html>

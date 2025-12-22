@@ -1,0 +1,53 @@
+{% macro render_question_card(q, current_status, current_period, current_topic, user_role) -%}
+  <div class="question-card">
+    <div class="question-header">
+      <div class="question-header-left">
+        <div class="question-modules">
+          {% for module in q.modules %}
+            <a href="{{ url_for('questions.list_questions', topic=module.id, status=current_status, period=current_period) }}"
+               class="module-badge">{{ module.title }}</a>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="question-header-right">
+        <a href="{{ url_for('questions.question_detail', question_id=q.id) }}" class="edit-btn">
+          📖
+        </a>
+        <a href="{{ url_for('questions.list_questions', topic=current_topic, status=q.status, period=current_period) }}"
+           class="status-badge status-{{ q.status.lower() }}">
+          {{ q.status_label }}
+        </a>
+        <form method="post" action="{{ url_for('questions.vote', question_id=q.id) }}" class="vote-form" style="margin: 0;">
+          <button type="submit" class="vote-button {% if q.my_vote %}voted{% endif %}" data-question-id="{{ q.id }}">
+            <span class="heart">{% if q.my_vote %}❤️{% else %}🤍{% endif %}</span>
+            <span class="vote-count">{{ q.votes_count }}</span>
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    {% if q.title %}
+      <div class="question-title">{{ q.title }}</div>
+    {% endif %}
+    
+    <div class="question-body">
+      {{ q.body_preview }}
+    </div>
+    
+    {% if q.summary %}
+      <div class="summary-block">
+        <strong>Ответ:</strong>
+        {{ q.summary }}
+        <a href="{{ url_for('questions.question_detail', question_id=q.id) }}" class="read-more-btn">
+          Читать полностью →
+        </a>
+      </div>
+    {% endif %}
+    
+    {% if q.telegram_link %}
+      <a href="{{ q.telegram_link }}" target="_blank" class="telegram-link">
+        💬 Обсуждение в Telegram ({{ q.messages_count - 1 if q.messages_count > 0 else 0 }})
+      </a>
+    {% endif %}
+  </div>
+{%- endmacro %}

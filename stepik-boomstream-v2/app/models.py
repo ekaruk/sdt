@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueCons
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .db import Base
+from pgvector.sqlalchemy import Vector
 
 
 # Константы ролей
@@ -149,9 +150,24 @@ class Question(Base):
 
 
     votes_count = Column(Integer, default=0, nullable=False)
+    embedding = relationship("QuestionEmbedding", uselist=False, back_populates="question")
 
     def __repr__(self):
         return f"<Question id={self.id} status={self.status} title={self.title[:30] if self.title else 'Untitled'}>"
+
+
+class QuestionEmbedding(Base):
+    __tablename__ = "question_embeddings"
+
+    question_id = Column(Integer, ForeignKey('questions.id', ondelete='CASCADE'), primary_key=True)
+    embedding = Column(Vector(3072), nullable=False)
+    source_text = Column(Text, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    question = relationship("Question", back_populates="embedding")
+
+    def __repr__(self):
+        return f"<QuestionEmbedding question_id={self.question_id} updated_at={self.updated_at}>"
 
 
 class QuestionStepikModule(Base):
