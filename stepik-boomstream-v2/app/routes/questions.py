@@ -605,17 +605,21 @@ def generate_title_with_ai(body: str) -> str:
 #          "version": "7",        
           "variables": {"question_text": body},
       },
-      reasoning={"effort": "medium"},   # low/medium/high — как доступно
+      prompt_cache_retention="24h",
+      prompt_cache_key="titles:v1:pmpt_694",  # любой стабильный ключ (см. ниже)
+      reasoning={"effort": "low"},
       text={
           "verbosity": "low",
           "format": {"type": "text"},
       },
-      max_output_tokens=100,
+      max_output_tokens=200,
       store=True, 
       )
       
       summary = response.output_text.strip()
       print(f"[AI Title] Response: {len(summary)}: {summary}")
+      if len(summary) == 0:
+          print(f"[AI Title] Error len 0: {str(response)}")
       return summary[:TITLE_MAX_LENGTH]
 
             
