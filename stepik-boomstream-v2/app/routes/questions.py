@@ -1546,6 +1546,30 @@ def question_detail(question_id: int):
             }
             .modules { display: flex; gap: 6px; overflow: hidden; min-width: 0; }
             .module-badge { background: #e3f2fd; color: #1976d2; padding: 4px 8px; border-radius: 10px; font-size: 12px; white-space: nowrap; flex: 0 0 auto; text-overflow: ellipsis; overflow: hidden; max-width: 160px; }
+            .modules-selector { display: flex; flex-wrap: wrap; gap: 8px; }
+            .module-checkbox-label { display: inline-flex; }
+            .module-checkbox-badge {
+              background: #e3f2fd;
+              color: #1976d2;
+              padding: 6px 12px;
+              border-radius: 999px;
+              font-size: 13px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+              box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.2);
+            }
+            .module-checkbox-label.selected .module-checkbox-badge {
+              background: #1976d2;
+              color: #fff;
+              box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.6);
+            }
+            .module-checkbox-badge:hover {
+              background: #d7ecfb;
+            }
+            .module-checkbox-label.selected .module-checkbox-badge:hover {
+              background: #1565c0;
+            }
             .status-badge { padding: 4px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; white-space: nowrap; align-self: flex-start; margin-left: 8px; flex: 0 0 auto; }
             .status-voting { background: #fff3e0; color: #f57c00; }
             .status-scheduled { background: #e1f5fe; color: #0288d1; }
