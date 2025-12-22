@@ -822,11 +822,8 @@ def list_questions():
                 modules = modules_by_qid.get(question.id, [])
                 answer = answers_by_qid.get(question.id)
                 answer_preview = None
-                if answer and answer.answer:
-                    if len(answer.answer) > 300:
-                        answer_preview = answer.answer[:300] + '...'
-                    else:
-                        answer_preview = answer.answer
+                if answer and answer.summary:
+                    answer_preview = answer.summary
                 telegram_link = None
                 messages_count = 0
                 topic = topics_by_qid.get(question.id)
@@ -853,11 +850,8 @@ def list_questions():
                 modules = modules_by_qid.get(question.id, [])
                 answer = answers_by_qid.get(question.id)
                 answer_preview = None
-                if answer and answer.answer:
-                    if len(answer.answer) > 300:
-                        answer_preview = answer.answer[:300] + '...'
-                    else:
-                        answer_preview = answer.answer
+                if answer and answer.summary:
+                    answer_preview = answer.summary
                 telegram_link = None
                 messages_count = 0
                 topic = topics_by_qid.get(question.id)
@@ -2770,44 +2764,36 @@ def api_questions():
         topics = db.query(TelegramTopic).filter(TelegramTopic.question_id.in_(question_ids)).all() if question_ids else []
         topics_by_qid = {t.question_id: t for t in topics}
 
-        questions_data = [];
+        questions_data = []
         for question, votes_count, my_vote in results:
-          # Модули
-          modules = modules_by_qid.get(question.id, []);
-          # Итоговый ответ
-          answer = answers_by_qid.get(question.id);
-          answer_preview = None;
-          if answer and answer.answer:
-            if len(answer.answer) > 300:
-              answer_preview = answer.answer[:300] + '...'
-            else:
-              answer_preview = answer.answer
-          # Telegram тема
-          telegram_link = None;
-          messages_count = 0;
-          topic = topics_by_qid.get(question.id);
-          if topic:
-            telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
-            messages_count = topic.messages_count or 0;
-            print(f"[DEBUG] Question {question.id}: messages_count = {messages_count}")
-          
-          # Превью текста
-          body_preview = question.body[:250] + '...' if len(question.body) > 250 else question.body
-          questions_data.append({
-            'id': question.id,
-            'title': question.title,
-            'body_preview': body_preview,
-            'status': question.status,
-            'status_label': get_status_label(question.status),
-            'votes_count': votes_count,
-            'my_vote': bool(my_vote),
-            'modules': [{'id': m.id, 'title': m.short_title or m.title} for m in modules],
-            'summary': answer_preview,
-            'telegram_link': telegram_link,
-            'messages_count': messages_count,
-            'created_at': question.created_at.isoformat() if question.created_at else None
-          })
-        
+            modules = modules_by_qid.get(question.id, [])
+            answer = answers_by_qid.get(question.id)
+            # Use summary (краткий ответ) if present
+            summary = answer.summary if answer and hasattr(answer, 'summary') and answer.summary else None
+            # Telegram тема
+            telegram_link = None
+            messages_count = 0
+            topic = topics_by_qid.get(question.id)
+            if topic:
+                telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
+                messages_count = topic.messages_count or 0
+                print(f"[DEBUG] Question {question.id}: messages_count = {messages_count}")
+            # Превью текста
+            body_preview = question.body[:250] + '...' if len(question.body) > 250 else question.body
+            questions_data.append({
+                'id': question.id,
+                'title': question.title,
+                'body_preview': body_preview,
+                'status': question.status,
+                'status_label': get_status_label(question.status),
+                'votes_count': votes_count,
+                'my_vote': bool(my_vote),
+                'modules': [{'id': m.id, 'title': m.short_title or m.title} for m in modules],
+                'summary': summary,
+                'telegram_link': telegram_link,
+                'messages_count': messages_count,
+                'created_at': question.created_at.isoformat() if question.created_at else None
+            })
         return jsonify({
             'success': True,
             'questions': questions_data
