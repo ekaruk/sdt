@@ -2642,7 +2642,7 @@ MINIAPP_TEMPLATE = """
     }
 
     if (redirectFromStartParam()) {
-      return;
+      // stop further initialization on this load
     }
     
     // Функция загрузки вопросов
