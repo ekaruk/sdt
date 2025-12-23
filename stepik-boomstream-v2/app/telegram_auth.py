@@ -57,43 +57,46 @@ def validate_webapp_init_data(init_data: str, bot_token: Optional[str] = None) -
         bot_token = Config.TELEGRAM_BOT_TOKEN
     
     if not bot_token or not init_data:
+        print("[WebAppAuth] Missing bot_token or init_data.")
         return None
     
     try:
+        token_hash = hashlib.sha256(bot_token.encode()).hexdigest()[:8]
+        print(f"[WebAppAuth] token_hash={token_hash} init_data_len={len(init_data)}")
+
         # Парсим параметры
-        params = dict(item.split('=', 1) for item in init_data.split('&') if '=' in item)
-        
+        params = dict(urllib.parse.parse_qsl(init_data, keep_blank_values=True))
+
         received_hash = params.get('hash')
         if not received_hash:
+            print("[WebAppAuth] Missing hash in init_data.")
             return None
-        
-        # Создаем data_check_string из всех параметров кроме hash
+
         data_check_items = []
         for key in sorted(params.keys()):
             if key != 'hash':
                 data_check_items.append(f"{key}={params[key]}")
-        
         data_check_string = '\n'.join(data_check_items)
-        
-        # Создаем secret_key: HMAC-SHA256(bot_token, "WebAppData")
+
         secret_key = hmac.new(
             key="WebAppData".encode(),
             msg=bot_token.encode(),
             digestmod=hashlib.sha256
         ).digest()
-        
-        # Вычисляем hash: HMAC-SHA256(secret_key, data_check_string)
+
         computed_hash = hmac.new(
             key=secret_key,
             msg=data_check_string.encode(),
             digestmod=hashlib.sha256
         ).hexdigest()
-        
-        # Проверяем подпись
+
         if not hmac.compare_digest(computed_hash, received_hash):
+            print("[WebAppAuth] Hash mismatch.")
+            print(f"[WebAppAuth] received_hash={received_hash}")
+            print(f"[WebAppAuth] computed_hash={computed_hash}")
+            print(f"[WebAppAuth] data_check_string={data_check_string}")
             return None
-        
-        # Извлекаем данные пользователя
+
         user_data = json.loads(urllib.parse.unquote(params.get('user', '{}')))
         
         return {

@@ -117,7 +117,7 @@ def login():
         # Если уже авторизован — сразу в кабинет
         if session.get("user_id"):
             return redirect("/me")
-        return render_template_string(LOGIN_TEMPLATE, error=None, app_domain=get_app_domain(), telegram_bot_username=Config.BOT_USERNAME)
+        return render_template_string(LOGIN_TEMPLATE, error=None, app_domain=get_app_domain(), telegram_bot_username=Config.TELEGRAM_BOT_USERNAME)
 
     # POST: вход по email + пароль (Boomstream-пароль, 9 цифр)
     email = request.form.get("email", "").strip()

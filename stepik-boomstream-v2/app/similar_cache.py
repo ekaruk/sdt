@@ -1,5 +1,6 @@
 from threading import Lock, Thread
 from typing import List, Optional
+import time
 
 from .db import SessionLocal
 from .embeddings import upsert_question_embedding
@@ -7,6 +8,16 @@ from .models import Question, QuestionAnswer, QuestionEmbedding, QuestionStepikM
 
 _CACHE = {}
 _LOCK = Lock()
+_SESSION_START_KEY = "__session_start_ts__"
+
+
+def get_session_start_ts() -> int:
+    with _LOCK:
+        ts = _CACHE.get(_SESSION_START_KEY)
+        if not ts:
+            ts = int(time.time())
+            _CACHE[_SESSION_START_KEY] = ts
+        return ts
 
 
 def get_cached_similar_ids(question_id: int) -> Optional[List[int]]:

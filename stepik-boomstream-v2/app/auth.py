@@ -3,8 +3,11 @@ from flask import session, redirect, url_for, abort, request
 from functools import wraps
 from app.db import SessionLocal
 from app.models import User, TelegramUser, ROLE_CURATOR, ROLE_ADMIN
+from app.telegram_auth import validate_webapp_init_data
+from app.config import Config
 
 import logging
+import time
 logger = logging.getLogger(__name__)
 
 
@@ -130,3 +133,112 @@ def upsert_telegram_user(tg_user) -> None:
         )
     finally:
         session.close()
+
+
+def ensure_session_user(init_data: str = ""):
+    """
+    Ensure session has user_id, user_role, telegram_id if possible.
+    Returns dict with user, user_id, user_role, telegram_id, tg_user.
+ 
+    """
+
+    cache_ts = session.get("user_cache_ts")
+    now_ts = int(time.time())
+    session_start_ts = Config.SESSION_START_TS
+    if (
+        not cache_ts 
+        or cache_ts < session_start_ts
+        or now_ts - cache_ts > 86400
+    ):  
+        session.pop("user_role", None)
+        session.pop("telegram_id", None)
+        session["user_cache_ts"] = now_ts
+        if init_data:
+           session.pop("user_id", None)
+    
+
+    user_id = session.get("user_id")
+    user_role = session.get("user_role")
+    telegram_id = session.get("telegram_id")
+    user = None
+    tg_user = None
+
+    if (
+        user_id
+        and user_role is not None
+        and telegram_id is not None
+    ):
+        return {
+            "user": None,
+            "user_id": user_id,
+            "user_role": user_role,
+            "telegram_id": telegram_id,
+            "tg_user": None,
+        }
+
+    db = SessionLocal()
+    try:
+        if user_id:
+            user = db.query(User).filter_by(id=user_id).first()
+            if not user:
+                session.pop("user_id", None)
+                session.pop("user_role", None)
+                session.pop("telegram_id", None)
+                print(f"[DEBUG] return 2") 
+                return {
+                    "user": None,
+                    "user_id": None,
+                    "user_role": None,
+                    "telegram_id": None,
+                    "tg_user": None,
+                }
+            session["user_role"] = user.role
+            session["telegram_id"] = user.telegram_id
+            session["user_cache_ts"] = now_ts
+            print(f"[DEBUG] return 3") 
+            return {
+                "user": user,
+                "user_id": user.id,
+                "user_role": user.role,
+                "telegram_id": user.telegram_id,
+                "tg_user": None,
+            }
+
+        if init_data:
+            tg_user = validate_webapp_init_data(init_data)
+            print(f"[DEBUG] tg_user from init_data: {tg_user}") 
+            if tg_user and tg_user.get("id"):
+                telegram_id = tg_user["id"]
+                upsert_telegram_user(tg_user)
+                session["telegram_id"] = telegram_id
+                user = db.query(User).filter_by(telegram_id=telegram_id).first()
+                print(
+                    f"[DEBUG] ensure init_data:{session}, user_id:{user.id if user else None}, "
+                    f"user_role:{user.role if user else None}, telegram_id:{telegram_id}, "
+                    f"session_start_ts:{session_start_ts}, cache_ts{cache_ts}, now_ts{now_ts}, "
+                    f"init_data:{init_data}"
+                )
+
+                if user:
+                    session["user_id"] = user.id
+                    session["user_role"] = user.role
+                    session["user_cache_ts"] = now_ts
+                    session.permanent = True
+                    print(f"[DEBUG] return 4") 
+                    return {
+                        "user": user,
+                        "user_id": user.id,
+                        "user_role": user.role,
+                        "telegram_id": telegram_id,
+                        "tg_user": tg_user,
+                    }
+        print(f"[DEBUG] return 5") 
+        return {
+            "user": None,
+            "user_id": session.get("user_id"),
+            "user_role": session.get("user_role"),
+            "telegram_id": session.get("telegram_id"),
+            "tg_user": tg_user,
+        }
+    finally:
+        db.close()

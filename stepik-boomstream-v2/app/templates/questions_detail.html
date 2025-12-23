@@ -159,11 +159,15 @@
                 {% elif question.status == 'VOTING' %}
                   <button onclick="publishQuestion({{ question.id }})" class="telegram-btn" id="publish-btn" style="background: #26a69a;">📢 Опубликовать в Telegram</button>
                 {% endif %}
-              </div>
-            {% elif telegram_link %}
-              <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+            {% if user_role is not none and user_role >= 0 and user_role < 1 %}
+              {% if telegram_link %}
+                <a href="{{ telegram_link }}" target="_blank" class="telegram-btn">💬 Обсуждение в Telegram ({{ messages_count - 1 if messages_count > 0 else 0 }})</a>
+              {% endif %}
             {% endif %}
-          </div>
+
+              </div>
+            {% endif %}
+          {% endif %}
 
           {% if similar_questions %}
           <div class="similar-questions" id="similar-questions">
@@ -174,7 +178,6 @@
               {% endfor %}
             </div>
           </div>
-          {% endif %}
           {% endif %}
           
           {% if user_role and user_role >= 1 %}

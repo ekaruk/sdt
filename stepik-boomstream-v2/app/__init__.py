@@ -8,6 +8,7 @@ from .routes.auth import auth_bp
 from .routes.dashboard import dashboard_bp
 from .routes.webapp_admin import admin_bp
 from .routes.questions import questions_bp
+from .routes.boom_media import boom_media_bp
 from .similar_cache import warmup_similar_cache_async
 
 def create_app() -> Flask:
@@ -27,6 +28,8 @@ def create_app() -> Flask:
     # Проверяем и создаём votes_count + триггер, если нужно
     from utils.ensure_votes_count_trigger import ensure_votes_count_trigger
     ensure_votes_count_trigger()
+    from utils.ensure_telegram_notice_columns import ensure_telegram_notice_columns
+    ensure_telegram_notice_columns()
 
     warmup_similar_cache_async()
 
@@ -35,5 +38,6 @@ def create_app() -> Flask:
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(questions_bp)
+    app.register_blueprint(boom_media_bp)
 
     return app

@@ -1,4 +1,5 @@
 import os
+import time
 import sys
 from dotenv import load_dotenv
 
@@ -26,7 +27,7 @@ class Config:
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ID форум-группы для публикации вопросов
     TELEGRAM_THREAD_ID = os.getenv("TELEGRAM_THREAD_ID")
-    BOT_USERNAME = os.getenv("BOT_USERNAME")
+    TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME")
 
     BOOMSTREAM_API_KEY = os.getenv("BOOM_API_KEY")
     BOOMSTREAM_CODE_SUBSCRIPTION = os.getenv("BOOM_CODE_SUBSCRIPTION")
@@ -35,6 +36,7 @@ class Config:
     # OpenAI API для генерации заголовков
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     OPENAI_EMBEDDING_MODEL = os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-large")
+    SESSION_START_TS = int(time.time())
     OPENAI_EMBEDDING_DIM = os.getenv("OPENAI_EMBEDDING_DIM")
     
     @classmethod
@@ -48,6 +50,9 @@ class Config:
         
         if not cls.TELEGRAM_BOT_TOKEN:
             errors.append("❌ TELEGRAM_BOT_TOKEN не задан!")
+
+        if not cls.TELEGRAM_BOT_USERNAME:
+            errors.append("❌ TELEGRAM_BOT_USERNAME не задан!")    
         
         if not cls.APP_DOMAIN:
             errors.append("❌ APP_DOMAIN не задан! (необходим для Mini App)")

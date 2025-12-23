@@ -228,6 +228,8 @@ class TelegramTopic(Base):
     # Message IDs для возможности редактирования/удаления
     open_message_id = Column(Integer, nullable=True)  # ID стартового поста
     close_message_id = Column(Integer, nullable=True)  # ID финального поста
+    notice_message_id = Column(Integer, nullable=True)  # ID уведомления
+    notice_is_pinned = Column(Boolean, nullable=False, default=False, server_default="false")
     
     # Статистика
     messages_count = Column(Integer, default=1, nullable=False)  # Количество сообщений в теме

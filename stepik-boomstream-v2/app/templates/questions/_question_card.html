@@ -9,10 +9,12 @@
           {% endfor %}
         </div>
       </div>
-      <div class="question-header-right">
+      <div class="question-header-right">        {% if user_role and user_role >= 1 %}
+
         <a href="{{ url_for('questions.question_detail', question_id=q.id) }}" class="edit-btn">
           📖
         </a>
+        {% endif %}
         <a href="{{ url_for('questions.list_questions', topic=current_topic, status=q.status, period=current_period) }}"
            class="status-badge status-{{ q.status.lower() }}">
           {{ q.status_label }}
@@ -44,10 +46,12 @@
       </div>
     {% endif %}
     
-    {% if q.telegram_link %}
-      <a href="{{ q.telegram_link }}" target="_blank" class="telegram-link">
-        💬 Обсуждение в Telegram ({{ q.messages_count - 1 if q.messages_count > 0 else 0 }})
-      </a>
-    {% endif %}
+    {% if user_role is not none and user_role >= 0 %}
+  {% if q.telegram_link %}
+    <a href="{{ q.telegram_link }}" target="_blank" class="telegram-link">
+      💬 Обсуждение в Telegram ({{ q.messages_count - 1 if q.messages_count > 0 else 0 }})
+    </a>
+  {% endif %}
+{% endif %}
   </div>
 {%- endmacro %}

@@ -309,6 +309,9 @@ async def handle_forum_messages(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 def main():
+    import hashlib
+    print("BOT TOKEN SHA:", hashlib.sha256(Config.TELEGRAM_BOT_TOKEN.encode()).hexdigest()[:8])
+
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))

@@ -75,5 +75,5 @@ def test_callback():
 if __name__ == '__main__':
     print("\n🔧 Test server starting...")
     print("📍 Open: http://localhost:5001/test-telegram-login")
-    print(f"⚠️  Make sure @{BOT_USERNAME} domain is set to your ngrok URL\n")
+    print(f"⚠️  Make sure @{Config.TELEGRAM_BOT_USERNAME} domain is set to your ngrok URL\n")
     app.run(port=5001, debug=True)

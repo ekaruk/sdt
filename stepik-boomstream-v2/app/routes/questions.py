@@ -1,3 +1,4 @@
+import token
 from flask import Blueprint, session, redirect, render_template, render_template_string, request, jsonify, url_for
 from sqlalchemy import func, exists, Integer, Boolean
 from sqlalchemy.orm import aliased
@@ -5,10 +6,17 @@ from datetime import datetime, timedelta
 import urllib.parse
 from ..db import SessionLocal
 from ..models import Question, QuestionVote, QuestionStepikModule, StepikModule, TelegramUser, QuestionAnswer, TelegramTopic, User, QuestionEmbedding
-from ..telegram_auth import validate_webapp_init_data
 from ..config import Config
-from ..auth import upsert_telegram_user
+from ..auth import ensure_session_user
 from ..embeddings import upsert_question_embedding
+from ..telegram_service import (
+    post_forum_topic_with_message,
+    send_message,
+    pin_notice_message,
+    unpin_notice_message,
+    edit_notice_reply_markup,
+    get_topic_link,
+)
 from ..similar_cache import get_or_compute_similar_ids, refresh_similar_cache_async
 from openai import OpenAI
 import requests
@@ -794,43 +802,31 @@ def generate_summary_api():
 
 @questions_bp.route("", methods=["GET"])
 def list_questions():
-    if not session.get("user_id"):
-        init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
-        if request.args.get("tg_init_data"):
-            init_data = urllib.parse.unquote(init_data)
-        tg_user = validate_webapp_init_data(init_data) if init_data else None
-        if tg_user and tg_user.get('id'):
-            upsert_telegram_user(tg_user)
-        if tg_user and tg_user.get('id'):
-            db_temp = SessionLocal()
-            try:
-                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
-                if user:
-                    session["user_id"] = user.id
-                    session.permanent = True
-            finally:
-                db_temp.close()
-        if not session.get("user_id") and not tg_user:
-            return redirect("/login")
+    init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
+    if request.args.get("tg_init_data"):
+        init_data = urllib.parse.unquote(init_data)
+    auth = ensure_session_user(init_data)
+    user_id = auth["user_id"]
+    user_role = auth["user_role"]
+    telegram_user_id = auth["telegram_id"]
 
-    """Главная страница со списком вопросов и фильтрами."""
+    if not user_id and not init_data:
+        return redirect("/login")
+    if not user_id and init_data:
+        return "Нет доступа. Обратитесь к администратору.", 403
+
+    """??????? ???????? ?? ??????? ???????? ? ?????????."""
     
     # Получаем параметры фильтрации
     topic_filter = request.args.get('topic', 'all')
     status_filter = request.args.get('status', 'all')
     period_filter = request.args.get('period', 'all')
-    
-    # Получаем текущего пользователя (опционально - для проверки my_vote)
-    user_id = session.get("user_id")
-    telegram_user_id = None
-    
+    # ???????? ???????? ???????????? (??????????? - ??? ???????? my_vote)
+    if user_role is None or user_role < 0:
+        return "Нет доступа. Обратитесь к администратору.", 403
+
     db = SessionLocal()
     try:
-        # Если пользователь авторизован, получаем его telegram_id
-        if user_id:
-            user = db.query(User).filter_by(id=user_id).first()
-            if user:
-                telegram_user_id = user.telegram_id
         
         # Основной запрос: votes_count теперь поле
         if telegram_user_id:
@@ -866,10 +862,21 @@ def list_questions():
         if period_date:
             query = query.filter(Question.created_at >= period_date)
         # Сортировка: по количеству голосов DESC, затем по дате DESC
-        query = query.order_by(
-          Question.votes_count.desc(),
-          Question.created_at.desc()
-        )
+        
+        if status_filter == 'POSTED':
+            query = query.order_by(
+              Question.posted_at.desc()
+            )
+        elif period_filter == 'last30':
+            query = query.order_by(
+              Question.created_at.desc()
+            )
+        else :    
+          query = query.order_by(
+            Question.votes_count.desc(),
+            Question.created_at.desc()
+          )
+        
         if period_filter == 'last30':
             query = query.limit(30)
         
@@ -961,13 +968,8 @@ def list_questions():
         # Получаем все модули для фильтров
         all_modules = db.query(StepikModule).order_by(StepikModule.position).all()
         
-        # Получаем роль пользователя
-        user_role = None
-        if user_id:
-            user = db.query(User).filter_by(id=user_id).first()
-            if user:
-                user_role = user.role
-        
+        # ???????? ???? ????????????
+        user_role = session.get("user_role")
         return render_template(
             "questions_list.html",
             questions=questions_data,
@@ -986,49 +988,23 @@ def list_questions():
 @questions_bp.route("/<int:question_id>/vote", methods=["POST"])
 def vote(question_id: int):
     """Toggle голоса за вопрос. Работает как с AJAX так и с form POST."""
-    
-    telegram_user_id = None
-    
-    # Сначала пытаемся получить telegram_user_id из initData (для Mini App)
     init_data = request.headers.get('X-Telegram-Init-Data', '')
-    if init_data:
-        try:
-            import json
-            import urllib.parse
-            params = dict(item.split('=') for item in init_data.split('&') if '=' in item)
-            if 'user' in params:
-                user_data = json.loads(urllib.parse.unquote(params['user']))
-                telegram_user_id = user_data.get('id')
-                print(f"[VOTE] Extracted telegram_user_id from initData: {telegram_user_id}")
-        except Exception as e:
-            print(f"[VOTE] Error parsing initData: {e}")
-    
-    # Если не получили из initData, пробуем из сессии
-    if not telegram_user_id:
-        user_id = session.get("user_id")
-        if not user_id:
-            # Для AJAX запросов возвращаем 401
-            if request.is_json or request.headers.get('Content-Type') == 'application/json' or init_data:
-                return jsonify({'error': 'Unauthorized', 'message': 'Требуется авторизация'}), 401
-            # Для обычных форм - редирект на login
-            return redirect('/login')
-        
-        db_temp = SessionLocal()
-        try:
-            user = db_temp.query(User).filter_by(id=user_id).first()
-            if user and user.telegram_id:
-                telegram_user_id = user.telegram_id
-        finally:
-            db_temp.close()
-    
-    if not telegram_user_id:
+    auth = ensure_session_user(init_data)
+    user_id = auth["user_id"]
+    user_role = auth["user_role"]
+    telegram_user_id = auth["telegram_id"]
+
+    if not user_id:
         if request.is_json or request.headers.get('Content-Type') == 'application/json' or init_data:
-            return jsonify({'error': 'No telegram_id', 'message': 'Telegram ID не найден'}), 400
-        return redirect('/questions')
-    
+            return jsonify({'error': 'access_denied', 'message': 'Нет доступа'}), 403
+        return redirect('/login')
+    if user_role is None or user_role < 0:
+        return jsonify({'error': 'access_denied', 'message': 'Нет доступа'}), 403
+    if not telegram_user_id:
+        return jsonify({'error': 'No telegram_id', 'message': 'Telegram ID не найден'}), 400
+
     db = SessionLocal()
     try:
-        # Проверяем существует ли вопрос
         question = db.query(Question).filter_by(id=question_id).first()
         if not question:
             if request.is_json or request.headers.get('Content-Type') == 'application/json' or init_data:
@@ -1118,6 +1094,7 @@ def publish_question(question_id: int):
         
         # Определяем иконку для топика из первого модуля вопроса (если есть)
         icon_custom_emoji_id = None
+        first_module = None
         if question.modules:
             first_module = question.modules[0]
             if first_module.forum_topic_icon:
@@ -1126,87 +1103,110 @@ def publish_question(question_id: int):
         # Логируем токен и chat_id для отладки
 #        print(f"[DEBUG] TELEGRAM_BOT_TOKEN: {Config.TELEGRAM_BOT_TOKEN}")
 #        print(f"[DEBUG] TELEGRAM_CHAT_ID: {Config.TELEGRAM_CHAT_ID}")
-        # Создаем форум топик через Telegram Bot API
-        create_topic_url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/createForumTopic"
-        topic_payload = {
-          'chat_id': Config.TELEGRAM_CHAT_ID,
-          'name': topic_name
-        }
-        # Добавляем иконку если она задана
-        if icon_custom_emoji_id:
-          topic_payload['icon_custom_emoji_id'] = icon_custom_emoji_id
-        topic_response = requests.post(create_topic_url, json=topic_payload)
-        
-        if not topic_response.ok:
-            return jsonify({
-                'success': False, 
-                'error': f'Ошибка создания темы: {topic_response.text}'
-            }), 500
-        
-        topic_data = topic_response.json()
-        message_thread_id = topic_data['result']['message_thread_id']
-        
-        # Отправляем сообщение с текстом вопроса в созданную тему
-        send_message_url = f"https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage"
-        message_text = question.body  # Заголовок уже в названии темы
-        
-        message_response = requests.post(send_message_url, json={
-            'chat_id': Config.TELEGRAM_CHAT_ID,
-            'message_thread_id': message_thread_id,
-            'text': message_text,
-            'parse_mode': 'Markdown'
-        })
-        
-        if not message_response.ok:
-            # Если не удалось отправить сообщение, пробуем закрыть тему
+        post_result = post_forum_topic_with_message(
+            chat_id=Config.TELEGRAM_CHAT_ID,
+            topic_name=topic_name,
+            message_text=question.body,
+            icon_custom_emoji_id=icon_custom_emoji_id,
+            parse_mode='Markdown',
+        )
+        if not post_result["ok"]:
             return jsonify({
                 'success': False,
-                'error': f'Ошибка отправки сообщения: {message_response.text}'
+                'error': f'Ошибка создания темы: {post_result.get("body")}'
             }), 500
-        
-        message_data = message_response.json()
-        open_message_id = message_data['result']['message_id']
 
+        message_thread_id = int(post_result["message_thread_id"])
+        open_message_id = post_result.get("message_id")
+        topic_link = post_result.get("topic_link", "")
+
+        notice_message_id = None
+        notice_is_pinned = False
         # Post a notification in the configured forum topic, if set.
         if Config.TELEGRAM_THREAD_ID:
             try:
                 print(f"[DEBUG] sending post: {Config.TELEGRAM_CHAT_ID}, thread: {Config.TELEGRAM_THREAD_ID}")
-                chat_id_str = str(Config.TELEGRAM_CHAT_ID)
-                topic_link = ""
-                if chat_id_str.startswith("-100"):
-                    topic_link = f"https://t.me/c/{chat_id_str[4:]}/{message_thread_id}"
+
+                months = [
+                    "января", "февраля", "марта", "апреля", "мая", "июня",
+                    "июля", "августа", "сентября", "октября", "ноября", "декабря"
+                ]
+                now = datetime.utcnow()
+                date_text = f"{now.day} {months[now.month - 1]}"
 
                 module_title = first_module.title if first_module else "Без раздела"
                 emoji_tag = ""
                 if first_module and first_module.forum_topic_icon:
                     emoji_tag = f'<tg-emoji emoji-id="{first_module.forum_topic_icon}">✨</tg-emoji>'
                 notice_text = (
-                    "💥 Опубликован новый вопрос 💥\n"
-                    f"{emoji_tag}{module_title}{emoji_tag}\n\n"
-                    f"⁉️<b>{question.title}</b>⁉️\n"
-                    f"{question.body}❓\n"
+                    f"📌Вопрос дня - {date_text}\n\n"
+#                    f"{emoji_tag}{module_title}{emoji_tag}\n\n"
+                    f"❓<b>{question.title}</b>❓\n\n"
+                    f"{question.body}✨\n"
                 )
 
                 keyboard = []
                 if topic_link:
-                    keyboard.append([{"text": "Обсудить вопрос", "url": topic_link}])
-                keyboard.append([{"text": "Выбрать следующий вопрос", "url": "https://t.me/sdt2025_bot/questions"}])
+                    keyboard.append([{
+                        "text": "🟢 Перейти к обсуждению",
+                        "url": topic_link
+                    }])
+                keyboard.append([{
+                    "text": "📋 Все открытые вопросы",
+                    "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_posted"
+                }]) 
+                keyboard.append([{
+                    "text": "❤️ Проголосовать за вопросы",
+                    "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_voting"
+                }])
 
+
+                reply_markup = {"inline_keyboard": keyboard} if keyboard else None
                 payload = {
                     "chat_id": Config.TELEGRAM_CHAT_ID,
                     "message_thread_id": int(Config.TELEGRAM_THREAD_ID),
                     "text": notice_text,
-                    "parse_mode": "HTML"
+                    "parse_mode": "HTML",
+                    "reply_markup": reply_markup,
                 }
+                print(f"[DEBUG] sending post (payload): {payload}")
 
-                print(f"[DEBUG] sending post (payload): {payload}") 
-
-                if keyboard:
-                    payload["reply_markup"] = {"inline_keyboard": keyboard}
-
-                resp = requests.post(send_message_url, json=payload)
-                print(f"[NOTICE] status={resp.status_code} body={resp.text}")
+                notice_result = send_message(
+                    chat_id=Config.TELEGRAM_CHAT_ID,
+                    message_thread_id=int(Config.TELEGRAM_THREAD_ID),
+                    text=notice_text,
+                    parse_mode="HTML",
+                    reply_markup=reply_markup,
+                )
+                print(f"[NOTICE] status={notice_result.get('status_code')} body={notice_result.get('body')}")
+                notice_message_id = notice_result.get("message_id")
+                if notice_message_id:
+                    pinned_topic = (
+                        db.query(TelegramTopic)
+                        .filter_by(notice_is_pinned=True)
+                        .first()
+                    )
+                    if pinned_topic and pinned_topic.notice_message_id:
+                        old_topic_link = get_topic_link(
+                            pinned_topic.chat_id,
+                            pinned_topic.message_thread_id,
+                        )
+                        old_keyboard = []
+                        if old_topic_link:
+                            old_keyboard.append(
+                                [{"text": "🔘 Перейти к обсуждению", "url": old_topic_link}]
+                            )
+                        edit_notice_reply_markup(
+                            pinned_topic.notice_message_id,
+                            {"inline_keyboard": old_keyboard},
+                        )
+                        unpin_notice_message(pinned_topic.notice_message_id)
+                        pinned_topic.notice_is_pinned = False
+                        db.add(pinned_topic)
+                    pin_result = pin_notice_message(notice_message_id)
+                    notice_is_pinned = bool(pin_result.get("ok"))
             except Exception as e:
+                print(f"[WARNING] Failed to post publish notice: {e}")
                 print(f"[WARNING] Failed to post publish notice: {e}")
         
         # Сохраняем связь в базе
@@ -1215,6 +1215,8 @@ def publish_question(question_id: int):
             chat_id=int(Config.TELEGRAM_CHAT_ID),
             message_thread_id=message_thread_id,
             open_message_id=open_message_id,
+            notice_message_id=notice_message_id,
+            notice_is_pinned=notice_is_pinned,
             opened_at=datetime.utcnow(),
             close_at=datetime.utcnow() + timedelta(days=7)
         )
@@ -1229,7 +1231,8 @@ def publish_question(question_id: int):
         return jsonify({
             'success': True,
             'message': 'Вопрос опубликован в Telegram',
-            'thread_id': message_thread_id
+            'thread_id': message_thread_id,
+            'topic_link': topic_link,
         })
         
     except Exception as e:
@@ -1421,38 +1424,24 @@ def archive_question(question_id):
 
 @questions_bp.route("/<int:question_id>", methods=["GET", "POST"])
 def question_detail(question_id: int):
-    if not session.get("user_id"):
-        init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
-        if request.args.get("tg_init_data"):
-            init_data = urllib.parse.unquote(init_data)
-        tg_user = validate_webapp_init_data(init_data) if init_data else None
-        if tg_user and tg_user.get('id'):
-            upsert_telegram_user(tg_user)
-        if tg_user and tg_user.get('id'):
-            db_temp = SessionLocal()
-            try:
-                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
-                if user:
-                    session["user_id"] = user.id
-                    session.permanent = True
-            finally:
-                db_temp.close()
-        if not session.get("user_id") and not tg_user:
-            return redirect("/login")
+    init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
+    if request.args.get("tg_init_data"):
+        init_data = urllib.parse.unquote(init_data)
+    auth = ensure_session_user(init_data)
+    user_id = auth["user_id"]
+    user_role = auth["user_role"]
+    telegram_user_id = auth["telegram_id"]
 
-    """Детальная страница вопроса с полным текстом и итоговым ответом."""
+    if not user_id and not init_data:
+        return redirect("/login")
+    if not user_id and init_data:
+        return "Нет доступа. Обратитесь к администратору.", 403
+    if user_role is None or user_role < 0:
+        return "Нет доступа. Обратитесь к администратору.", 403
+
+    """????????? ???????? ??????? ? ?????? ??????? ? ?????Нет доступа."""
     
     # Получаем роль пользователя
-    user_id = session.get("user_id")
-    user_role = None
-    if user_id:
-        db_temp = SessionLocal()
-        try:
-            user = db_temp.query(User).filter_by(id=user_id).first()
-            if user:
-                user_role = user.role
-        finally:
-            db_temp.close()
     
     # Обработка POST запроса (создание или редактирование)
     if request.method == "POST":
@@ -1647,11 +1636,6 @@ def question_detail(question_id: int):
         
         # Простой шаблон для детальной страницы
 
-        telegram_user_id = None
-        if user_id:
-            user = db.query(User).filter_by(id=user_id).first()
-            if user:
-                telegram_user_id = user.telegram_id
 
         similar_questions = []
         if question_id != 0:
@@ -2611,12 +2595,31 @@ MINIAPP_TEMPLATE = """
     // Получаем initData для авторизации
     const initData = tg.initData;
     const user = tg.initDataUnsafe?.user;
-    const startParam = tg.initDataUnsafe?.start_param || '';
+    let startParam = tg.initDataUnsafe?.start_param || '';
+    if (!startParam) {
+      const urlParams = new URLSearchParams(window.location.search);
+      startParam = urlParams.get('tgWebAppStartParam') || urlParams.get('startapp') || '';
+    }
     
     console.log('Telegram User:', user);
     console.log('Init Data:', initData);
     if (startParam) {
       console.log('[MiniApp] start_param:', startParam);
+    }
+
+    function applyStartParamFilters() {
+      if (!startParam) {
+        return false;
+      }
+      if (startParam === 'status_voting') {
+        filterByStatus('VOTING');
+        return true;
+      }
+      if (startParam === 'status_posted') {
+        filterByStatus('POSTED');
+        return true;
+      }
+      return false;
     }
 
     function redirectFromStartParam() {
@@ -2675,13 +2678,24 @@ MINIAPP_TEMPLATE = """
         
         if (!response.ok) {
           const errorText = await response.text();
+          let errorMessage = `Failed to load questions: ${response.status}`;
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData && errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch (e) {
+            if (errorText) {
+              errorMessage = errorText;
+            }
+          }
           console.error('[MiniApp] Error response:', errorText);
-          throw new Error(`Failed to load questions: ${response.status}`);
+          throw new Error(errorMessage);
         }
         
         const data = await response.json();
         console.log('[MiniApp] Questions loaded:', data.questions ? data.questions.length : 0);
-        renderQuestions(data.questions);
+        renderQuestions(data.questions, data.user_role || 0);
         
       } catch (error) {
         console.error('[MiniApp] Error loading questions:', error);
@@ -2698,8 +2712,9 @@ MINIAPP_TEMPLATE = """
     }
     
     // Функция рендеринга вопросов
-    function renderQuestions(questions) {
+    function renderQuestions(questions, userRole) {
       const container = document.getElementById('questions-container');
+      const canManage = Number(userRole) >= 1;
       
       if (questions.length === 0) {
         container.innerHTML = `
@@ -2918,7 +2933,10 @@ MINIAPP_TEMPLATE = """
     document.addEventListener('DOMContentLoaded', () => {
       loadModules();
       setupFilters();
-      loadQuestions();
+      const applied = applyStartParamFilters();
+      if (!applied) {
+        loadQuestions();
+      }
       
       // Сообщаем Telegram что приложение готово
       tg.ready();
@@ -2958,46 +2976,23 @@ def api_questions():
     status_filter = request.args.get('status', 'all')
     period_filter = request.args.get('period', 'all')
     
-    # Получаем initData из заголовка
+    # ???????? initData ?? ????????
     init_data = request.headers.get('X-Telegram-Init-Data', '')
-    telegram_user_id = None
-    if not session.get("user_id"):
-        tg_user = validate_webapp_init_data(init_data) if init_data else None
-        if tg_user and tg_user.get('id'):
-            upsert_telegram_user(tg_user)
-        if tg_user and tg_user.get('id'):
-            db_temp = SessionLocal()
-            try:
-                user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
-                if user:
-                    session["user_id"] = user.id
-                    session.permanent = True
-            finally:
-                db_temp.close()
+    auth = ensure_session_user(init_data)
+    user_id = auth["user_id"]
+    user_role = auth["user_role"]
+    telegram_user_id = auth["telegram_id"]
+    if not user_id:
+        return jsonify({"success": False, "error": "access_denied", "message": "Нет доступа"}), 403
+    if user_role is None or user_role < 0:
+        return jsonify({"success": False, "error": "access_denied", "message": "Нет доступа"}), 403
 
-    
-    # Простая валидация: извлекаем user_id из initData
-    # ВРЕМЕННО: отключаем строгую валидацию для тестирования
-    if init_data:
-        try:
-            # Парсим initData (формат: key=value&key=value)
-            params = dict(item.split('=') for item in init_data.split('&') if '=' in item)
-            if 'user' in params:
-                import json
-                import urllib.parse
-                user_data = json.loads(urllib.parse.unquote(params['user']))
-                telegram_user_id = user_data.get('id')
-                print(f"[API] Extracted telegram_user_id: {telegram_user_id}")
-        except Exception as e:
-            print(f"[API] Error parsing initData: {e}")
-    
     db = SessionLocal()
     try:
-        # Базовый запрос для подсчета голосов
+        # ??????? ?????? ??? ???????? ???????
         votes_subquery = (
             db.query(
                 QuestionVote.question_id,
-                func.count(QuestionVote.telegram_user_id).label('votes_count')
             )
             .group_by(QuestionVote.question_id)
             .subquery()
@@ -3013,19 +3008,15 @@ def api_questions():
             query = (
                 db.query(
                     Question,
-                    func.coalesce(votes_subquery.c.votes_count, 0).label('votes_count'),
                     my_vote_exists.label('my_vote')
                 )
-                .outerjoin(votes_subquery, Question.id == votes_subquery.c.question_id)
             )
         else:
             query = (
                 db.query(
                     Question,
-                    func.coalesce(votes_subquery.c.votes_count, 0).label('votes_count'),
                     func.cast(False, Integer).label('my_vote')
                 )
-                .outerjoin(votes_subquery, Question.id == votes_subquery.c.question_id)
             )
         
         # Применяем фильтры
@@ -3042,10 +3033,20 @@ def api_questions():
         if period_date:
           query = query.filter(Question.created_at >= period_date)
         # Сортировка
-        query = query.order_by(
-          func.coalesce(votes_subquery.c.votes_count, 0).desc(),
-          Question.created_at.desc()
-        )
+        if status_filter == 'POSTED':
+            query = query.order_by(
+              Question.posted_at.desc()
+            )
+        elif period_filter == 'last30':
+            query = query.order_by(
+              Question.created_at.desc()
+            )
+        else :    
+             query = query.order_by(
+               Question.votes_count.desc(),
+               Question.created_at.desc()
+          )
+        
         if period_filter == 'last30':
           query = query.limit(30)
         
@@ -3107,6 +3108,7 @@ def api_questions():
             })
         return jsonify({
             'success': True,
+            'user_role': user_role,
             'questions': questions_data
         })
         
