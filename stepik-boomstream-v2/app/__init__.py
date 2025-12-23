@@ -8,6 +8,7 @@ from .routes.auth import auth_bp
 from .routes.dashboard import dashboard_bp
 from .routes.webapp_admin import admin_bp
 from .routes.questions import questions_bp
+from .similar_cache import warmup_similar_cache_async
 
 def create_app() -> Flask:
     # Проверяем конфигурацию перед запуском
@@ -26,6 +27,8 @@ def create_app() -> Flask:
     # Проверяем и создаём votes_count + триггер, если нужно
     from utils.ensure_votes_count_trigger import ensure_votes_count_trigger
     ensure_votes_count_trigger()
+
+    warmup_similar_cache_async()
 
     # Регистрируем blueprints
     app.register_blueprint(auth_bp)

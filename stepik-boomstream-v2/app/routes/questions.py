@@ -7,7 +7,9 @@ from ..db import SessionLocal
 from ..models import Question, QuestionVote, QuestionStepikModule, StepikModule, TelegramUser, QuestionAnswer, TelegramTopic, User, QuestionEmbedding
 from ..telegram_auth import validate_webapp_init_data
 from ..config import Config
+from ..auth import upsert_telegram_user
 from ..embeddings import upsert_question_embedding
+from ..similar_cache import get_or_compute_similar_ids, refresh_similar_cache_async
 from openai import OpenAI
 import requests
 
@@ -736,6 +738,8 @@ def build_question_card_dict(question, modules, answer, topic, my_vote):
     }
 
 
+
+
 def get_similar_questions_by_modules(db, question_id, module_ids, limit=5):
     if not module_ids:
         return []
@@ -795,6 +799,8 @@ def list_questions():
         if request.args.get("tg_init_data"):
             init_data = urllib.parse.unquote(init_data)
         tg_user = validate_webapp_init_data(init_data) if init_data else None
+        if tg_user and tg_user.get('id'):
+            upsert_telegram_user(tg_user)
         if tg_user and tg_user.get('id'):
             db_temp = SessionLocal()
             try:
@@ -1421,6 +1427,8 @@ def question_detail(question_id: int):
             init_data = urllib.parse.unquote(init_data)
         tg_user = validate_webapp_init_data(init_data) if init_data else None
         if tg_user and tg_user.get('id'):
+            upsert_telegram_user(tg_user)
+        if tg_user and tg_user.get('id'):
             db_temp = SessionLocal()
             try:
                 user = db_temp.query(User).filter_by(telegram_id=tg_user['id']).first()
@@ -1565,6 +1573,7 @@ def question_detail(question_id: int):
             
             db.commit()
             db.close()
+            refresh_similar_cache_async(new_question_id)
             
             # Редирект обратно на просмотр
             return redirect(url_for('questions.question_detail', question_id=new_question_id))
@@ -1646,36 +1655,12 @@ def question_detail(question_id: int):
 
         similar_questions = []
         if question_id != 0:
-            embedding_row = (
-                db.query(QuestionEmbedding)
-                .filter(QuestionEmbedding.question_id == question_id)
-                .first()
+            answer_summary = None
+            if answer and getattr(answer, "summary", None):
+                answer_summary = answer.summary
+            similar_ids = get_or_compute_similar_ids(
+                db, question, modules, answer_summary, limit=5
             )
-            if not embedding_row:
-                try:
-                    answer_summary = None
-                    if answer and getattr(answer, 'summary', None):
-                        answer_summary = answer.summary
-                    if upsert_question_embedding(db, question, modules, answer_summary):
-                        db.commit()
-                    embedding_row = (
-                        db.query(QuestionEmbedding)
-                        .filter(QuestionEmbedding.question_id == question_id)
-                        .first()
-                    )
-                except Exception as e:
-                    print(f"[Embedding] Update failed: {e}")
-                    db.rollback()
-            if embedding_row:
-                similar_ids = get_similar_question_ids_by_embedding(
-                    db, question_id, embedding_row.embedding, limit=5
-                )
-            else:
-                similar_ids = []
-            if not similar_ids:
-                similar_ids = get_similar_questions_by_modules(
-                    db, question_id, selected_module_ids, limit=5
-                )
             if similar_ids:
                 similar_qs = db.query(Question).filter(Question.id.in_(similar_ids)).all()
                 q_map = {q.id: q for q in similar_qs}
@@ -2626,9 +2611,39 @@ MINIAPP_TEMPLATE = """
     // Получаем initData для авторизации
     const initData = tg.initData;
     const user = tg.initDataUnsafe?.user;
+    const startParam = tg.initDataUnsafe?.start_param || '';
     
     console.log('Telegram User:', user);
     console.log('Init Data:', initData);
+    if (startParam) {
+      console.log('[MiniApp] start_param:', startParam);
+    }
+
+    function redirectFromStartParam() {
+      if (!startParam) {
+        return false;
+      }
+      let questionId = '';
+      if (startParam.startsWith('question_')) {
+        questionId = startParam.slice('question_'.length);
+      } else if (/^\d+$/.test(startParam)) {
+        questionId = startParam;
+      }
+      if (!questionId || !/^\d+$/.test(questionId)) {
+        return false;
+      }
+      const redirectKey = `miniapp_redirect_${questionId}`;
+      if (sessionStorage.getItem(redirectKey)) {
+        return false;
+      }
+      sessionStorage.setItem(redirectKey, '1');
+      window.location.href = `/questions/${questionId}?tg_init_data=${encodeURIComponent(initData)}`;
+      return true;
+    }
+
+    if (redirectFromStartParam()) {
+      return;
+    }
     
     // Функция загрузки вопросов
     async function loadQuestions() {
@@ -2948,6 +2963,8 @@ def api_questions():
     telegram_user_id = None
     if not session.get("user_id"):
         tg_user = validate_webapp_init_data(init_data) if init_data else None
+        if tg_user and tg_user.get('id'):
+            upsert_telegram_user(tg_user)
         if tg_user and tg_user.get('id'):
             db_temp = SessionLocal()
             try:

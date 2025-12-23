@@ -77,45 +77,56 @@ def get_user_by_telegram_id(telegram_id: int):
 
 def upsert_telegram_user(tg_user) -> None:
     """Создаёт или обновляет запись в таблице telegram_users по Telegram ID."""
+    def _tg_get(obj, key):
+        if isinstance(obj, dict):
+            return obj.get(key)
+        return getattr(obj, key, None)
+
+    tg_user_id = _tg_get(tg_user, "id")
+    if not tg_user_id:
+        return
+
     session = SessionLocal()
     try:
-        db_tg = session.get(TelegramUser, tg_user.id)
+        db_tg = session.get(TelegramUser, tg_user_id)
 
         if db_tg is None:
-            # новый пользователь
+            # Новый пользователь
             db_tg = TelegramUser(
-                id=tg_user.id,
-                first_name=tg_user.first_name,
-                last_name=tg_user.last_name,
-                username=tg_user.username,
-                phone=None,  # телефон можно дописать позже, если будешь его собирать
+                id=tg_user_id,
+                first_name=_tg_get(tg_user, "first_name"),
+                last_name=_tg_get(tg_user, "last_name"),
+                username=_tg_get(tg_user, "username"),
+                phone=None,  # Телефон может приходить отдельно (CSV/импорт)
             )
             session.add(db_tg)
         else:
-            # обновляем, если что-то поменялось
+            # Обновляем, если что-то изменилось
             changed = False
-            if db_tg.first_name != tg_user.first_name:
-                db_tg.first_name = tg_user.first_name
+            first_name = _tg_get(tg_user, "first_name")
+            last_name = _tg_get(tg_user, "last_name")
+            username = _tg_get(tg_user, "username")
+            if db_tg.first_name != first_name:
+                db_tg.first_name = first_name
                 changed = True
-            if db_tg.last_name != tg_user.last_name:
-                db_tg.last_name = tg_user.last_name
+            if db_tg.last_name != last_name:
+                db_tg.last_name = last_name
                 changed = True
-            if db_tg.username != tg_user.username:
-                db_tg.username = tg_user.username
+            if db_tg.username != username:
+                db_tg.username = username
                 changed = True
-            # phone оставляем как есть (берёшь из CSV/формы), чтобы не затереть
+            # phone не обновляем здесь
 
             if not changed:
-                # ничего не меняли — можно не дёргать commit
-                session.commit()  # можно и убрать, если хочешь
+                session.commit()
                 return
 
         session.commit()
     except Exception as e:
         session.rollback()
         logger.error(
-            f"Ошибка при сохранении telegram_user ID={tg_user.id}: {e}",
+            f"Ошибка при сохранении telegram_user ID={tg_user_id}: {e}",
             exc_info=True
-        )    
+        )
     finally:
         session.close()
