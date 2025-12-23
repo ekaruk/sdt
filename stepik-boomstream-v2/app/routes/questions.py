@@ -3008,6 +3008,7 @@ def api_questions():
             query = (
                 db.query(
                     Question,
+                    Question.votes_count.label('votes_count'),
                     my_vote_exists.label('my_vote')
                 )
             )
@@ -3015,6 +3016,7 @@ def api_questions():
             query = (
                 db.query(
                     Question,
+                    Question.votes_count.label('votes_count'),
                     func.cast(False, Integer).label('my_vote')
                 )
             )
