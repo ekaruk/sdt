@@ -14,8 +14,10 @@ def main() -> None:
     db = SessionLocal()
     try:
         questions = db.query(Question).all()
+        total = len(questions)
         updated = 0
-        for question in questions:
+        print(f"Found questions: {total}")
+        for idx, question in enumerate(questions, start=1):
             modules = (
                 db.query(StepikModule)
                 .join(QuestionStepikModule)
@@ -27,6 +29,8 @@ def main() -> None:
                 updated += 1
                 if updated % 20 == 0:
                     db.commit()
+            if idx % 20 == 0 or idx == total:
+                print(f"Processed {idx}/{total}, updated {updated}")
         db.commit()
         print(f"Updated embeddings: {updated}")
     finally:

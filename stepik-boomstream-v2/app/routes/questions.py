@@ -1091,7 +1091,7 @@ def publish_question(question_id: int):
         return jsonify({'success': False, 'error': 'Недостаточно прав'}), 403
     
     # Проверяем наличие необходимых параметров
-    if not Config.TELEGRAM_BOT_TOKEN or not Config.TELEGRAM_CHAT_ID:
+    if not Config.TELEGRAM_BOT_TOKEN or not Config.TELEGRAM_CHAT_ID or not Config.TELEGRAM_THREAD_ID:
         return jsonify({'success': False, 'error': 'Telegram не настроен'}), 500
     
     db = SessionLocal()
@@ -1160,6 +1160,48 @@ def publish_question(question_id: int):
         
         message_data = message_response.json()
         open_message_id = message_data['result']['message_id']
+
+        # Post a notification in the configured forum topic, if set.
+        if Config.TELEGRAM_THREAD_ID:
+            try:
+                print(f"[DEBUG] sending post: {Config.TELEGRAM_CHAT_ID}, thread: {Config.TELEGRAM_THREAD_ID}")
+                chat_id_str = str(Config.TELEGRAM_CHAT_ID)
+                topic_link = ""
+                if chat_id_str.startswith("-100"):
+                    topic_link = f"https://t.me/c/{chat_id_str[4:]}/{message_thread_id}"
+
+                module_title = first_module.title if first_module else "Без раздела"
+                emoji_tag = ""
+                if first_module and first_module.forum_topic_icon:
+                    emoji_tag = f'<tg-emoji emoji-id="{first_module.forum_topic_icon}">✨</tg-emoji>'
+                notice_text = (
+                    "💥 Опубликован новый вопрос 💥\n"
+                    f"{emoji_tag}{module_title}{emoji_tag}\n\n"
+                    f"⁉️<b>{question.title}</b>⁉️\n"
+                    f"{question.body}❓\n"
+                )
+
+                keyboard = []
+                if topic_link:
+                    keyboard.append([{"text": "Обсудить вопрос", "url": topic_link}])
+                keyboard.append([{"text": "Выбрать следующий вопрос", "url": "https://t.me/sdt2025_bot/questions"}])
+
+                payload = {
+                    "chat_id": Config.TELEGRAM_CHAT_ID,
+                    "message_thread_id": int(Config.TELEGRAM_THREAD_ID),
+                    "text": notice_text,
+                    "parse_mode": "HTML"
+                }
+
+                print(f"[DEBUG] sending post (payload): {payload}") 
+
+                if keyboard:
+                    payload["reply_markup"] = {"inline_keyboard": keyboard}
+
+                resp = requests.post(send_message_url, json=payload)
+                print(f"[NOTICE] status={resp.status_code} body={resp.text}")
+            except Exception as e:
+                print(f"[WARNING] Failed to post publish notice: {e}")
         
         # Сохраняем связь в базе
         telegram_topic = TelegramTopic(

@@ -25,6 +25,7 @@ class Config:
     TELEGRAM_BOT_VIDEO_TOKEN = os.getenv("TELEGRAM_BOT_VIDEO_TOKEN")
     TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
     TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")  # ID форум-группы для публикации вопросов
+    TELEGRAM_THREAD_ID = os.getenv("TELEGRAM_THREAD_ID")
     BOT_USERNAME = os.getenv("BOT_USERNAME")
 
     BOOMSTREAM_API_KEY = os.getenv("BOOM_API_KEY")
