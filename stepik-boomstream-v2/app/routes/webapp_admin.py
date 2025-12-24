@@ -3,9 +3,10 @@ import json
 
 from flask import Blueprint, render_template, render_template_string, request, redirect, url_for
 from ..db import SessionLocal
-from ..models import User, TelegramUser
+from ..models import User, TelegramUser, TelegramMessage
 from ..auth import admin_required
-from ..telegram_service import edit_message_text, edit_message_reply_markup
+from ..config import Config
+from ..telegram_service import edit_message_text, edit_message_reply_markup, send_message
 
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
 
@@ -71,6 +72,8 @@ TELEGRAM_EDIT_TEMPLATE = """
     input, textarea { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; }
     textarea { min-height: 120px; font-family: monospace; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .input-small { padding: 6px 8px; font-size: 13px; }
     .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
     .btn { background: #1976d2; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
     .msg { margin-top: 12px; padding: 10px; border-radius: 6px; background: #eef7ee; }
@@ -90,27 +93,78 @@ TELEGRAM_EDIT_TEMPLATE = """
           <input name="link" value="{{ link or '' }}" placeholder="https://t.me/c/3320447395/159/160">
         </div>
       </div>
-      <div class="row">
+      <div class="actions" style="margin-top: 8px;">
+        <button class="btn" type="button" onclick="splitLink()">Разбить</button>
+        <button class="btn" type="button" onclick="buildLink()">Собрать</button>
+      </div>
+      <div class="row three">
         <div>
-          <label>message_id</label>
-          <input name="message_id" value="{{ message_id or '' }}">
+          <label>chat_id</label>
+          <input class="input-small" name="chat_id" value="{{ chat_id or '' }}" placeholder="-1001234567890">
         </div>
         <div>
           <label>thread_id</label>
-          <input name="thread_id" value="{{ thread_id or '' }}" placeholder="например 42">
+          <input class="input-small" name="thread_id" value="{{ thread_id or '' }}" placeholder="например 42">
+        </div>
+        <div>
+          <label>message_id</label>
+          <input class="input-small" name="message_id" value="{{ message_id or '' }}">
         </div>
       </div>
       <label>Новый текст (HTML)</label>
-      <textarea name="text" required>{{ text or '' }}</textarea>
+      <textarea name="text">{{ text or '' }}</textarea>
+      <label>parse_mode</label>
+      <select name="parse_mode">
+        <option value="" {% if not parse_mode %}selected{% endif %}>Plain text</option>
+        <option value="HTML" {% if parse_mode == "HTML" %}selected{% endif %}>HTML</option>
+        <option value="Markdown" {% if parse_mode == "Markdown" %}selected{% endif %}>Markdown</option>
+        <option value="MarkdownV2" {% if parse_mode == "MarkdownV2" %}selected{% endif %}>MarkdownV2</option>
+      </select>
       <label>Клавиатура (JSON inline_keyboard)</label>
       <textarea name="keyboard">{{ keyboard or '' }}</textarea>
       <div class="actions">
-        <button class="btn" type="submit" name="action" value="both">Обновить</button>
+        <button class="btn" type="submit" name="action" value="load">Загрузить из базы</button>
+        <button class="btn" type="submit" name="action" value="both">Обновить целиком</button>
         <button class="btn" type="submit" name="action" value="text">Обновить только текст</button>
         <button class="btn" type="submit" name="action" value="keyboard">Обновить только клавиатуру</button>
+        <button class="btn" type="submit" name="action" value="send">Send new message</button>
       </div>
     </form>
   </div>
+<script>
+  function splitLink() {
+    const link = document.querySelector('input[name="link"]').value.trim();
+    if (!link) return;
+    const path = link.split('t.me/').pop();
+    const parts = path.split('/').filter(Boolean);
+    if (parts.length >= 2 && parts[0] === 'c') {
+      const chatBase = parts[1];
+      const threadId = parts[2] || '';
+      const messageId = parts[3] || parts[2] || '';
+      document.querySelector('input[name="chat_id"]').value = `-100${chatBase}`;
+      document.querySelector('input[name="thread_id"]').value = threadId;
+      document.querySelector('input[name="message_id"]').value = messageId;
+    }
+  }
+
+  function buildLink() {
+    const chatId = document.querySelector('input[name="chat_id"]').value.trim();
+    const threadId = document.querySelector('input[name="thread_id"]').value.trim();
+    const messageId = document.querySelector('input[name="message_id"]').value.trim();
+    if (!chatId || !messageId) return;
+    let chatBase = chatId;
+    if (chatBase.startsWith('-100')) {
+      chatBase = chatBase.slice(4);
+    }
+    let link = `https://t.me/c/${chatBase}`;
+    if (threadId) {
+      link += `/${threadId}`;
+    }
+    link += `/${messageId}`;
+    document.querySelector('input[name="link"]').value = link;
+  }
+</script>
+
 </body>
 </html>
 """
@@ -122,18 +176,204 @@ def edit_telegram_message():
     message = None
     success = True
     link = request.form.get("link") if request.method == "POST" else ""
+    chat_id = request.form.get("chat_id") if request.method == "POST" else ""
     message_id = request.form.get("message_id") if request.method == "POST" else ""
     thread_id = request.form.get("thread_id") if request.method == "POST" else ""
     text = request.form.get("text") if request.method == "POST" else ""
     keyboard = request.form.get("keyboard") if request.method == "POST" else ""
+    parse_mode = request.form.get("parse_mode") if request.method == "POST" else "HTML"
     action = request.form.get("action") if request.method == "POST" else "both"
 
     if request.method == "POST":
-        if link and (not message_id or not thread_id):
+        if action == "send":
+            try:
+                chat_id_int = int(chat_id) if chat_id else int(Config.TELEGRAM_CHAT_ID)
+            except (TypeError, ValueError):
+                return render_template_string(
+                    TELEGRAM_EDIT_TEMPLATE,
+                    message="Invalid chat_id.",
+                    success=False,
+                    link=link,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    thread_id=thread_id,
+                    text=text,
+                    keyboard=keyboard,
+                    parse_mode=parse_mode,
+                )
+            thread_id_int = None
+            if thread_id:
+                try:
+                    thread_id_int = int(thread_id)
+                except (TypeError, ValueError):
+                    return render_template_string(
+                        TELEGRAM_EDIT_TEMPLATE,
+                        message="Invalid thread_id.",
+                        success=False,
+                        link=link,
+                        chat_id=chat_id,
+                        message_id=message_id,
+                        thread_id=thread_id,
+                        text=text,
+                        keyboard=keyboard,
+                        parse_mode=parse_mode,
+                    )
+
+            reply_markup = None
+            if keyboard:
+                try:
+                    reply_markup = json.loads(keyboard)
+                except json.JSONDecodeError:
+                    return render_template_string(
+                        TELEGRAM_EDIT_TEMPLATE,
+                        message="Invalid keyboard JSON.",
+                        success=False,
+                        link=link,
+                        chat_id=chat_id,
+                        message_id=message_id,
+                        thread_id=thread_id,
+                        text=text,
+                        keyboard=keyboard,
+                        parse_mode=parse_mode,
+                    )
+
+            send_result = send_message(
+                chat_id=chat_id_int,
+                text=text,
+                parse_mode=parse_mode or None,
+                reply_markup=reply_markup,
+                message_thread_id=thread_id_int,
+            )
+            if not send_result.get("ok"):
+                return render_template_string(
+                    TELEGRAM_EDIT_TEMPLATE,
+                    message=f"Failed to send message: {send_result.get('body')}",
+                    success=False,
+                    link=link,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    thread_id=thread_id,
+                    text=text,
+                    keyboard=keyboard,
+                    parse_mode=parse_mode,
+                )
+
+            message_id = str(send_result.get("message_id") or "")
+            message = "Message sent."
+            return render_template_string(
+                TELEGRAM_EDIT_TEMPLATE,
+                message=message,
+                success=True,
+                link=link,
+                chat_id=chat_id,
+                message_id=message_id,
+                thread_id=thread_id,
+                text=text,
+                keyboard=keyboard,
+                parse_mode=parse_mode,
+            )
+        if action == "load":
+            try:
+                if link and (not message_id or not thread_id or not chat_id):
+                    path = link.split("t.me/")[-1]
+                    parts = [p for p in path.split("/") if p]
+                    if len(parts) >= 3 and parts[0] == "c":
+                        if not chat_id:
+                            chat_id = f"-100{parts[1]}"
+                        if len(parts) >= 4:
+                            thread_id = thread_id or parts[2]
+                            message_id = message_id or parts[3]
+                        else:
+                            message_id = message_id or parts[2]
+                message_id_int = int(message_id)
+                chat_id_int = int(chat_id) if chat_id else int(Config.TELEGRAM_CHAT_ID)
+            except Exception:
+                return render_template_string(
+                    TELEGRAM_EDIT_TEMPLATE,
+                    message="Некорректный message_id или ссылка.",
+                    success=False,
+                    link=link,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    thread_id=thread_id,
+                    text=text,
+                    keyboard=keyboard,
+                    parse_mode=parse_mode,
+                )
+
+            session = SessionLocal()
+            try:
+                query = session.query(TelegramMessage).filter(
+                    TelegramMessage.chat_id == chat_id_int,
+                    TelegramMessage.message_id == message_id_int,
+                )
+                if thread_id:
+                    try:
+                        thread_id_int = int(thread_id)
+                        query = query.filter(TelegramMessage.message_thread_id == thread_id_int)
+                    except (TypeError, ValueError):
+                        return render_template_string(
+                            TELEGRAM_EDIT_TEMPLATE,
+                            message="Некорректный thread_id.",
+                            success=False,
+                            link=link,
+                            chat_id=chat_id,
+                            message_id=message_id,
+                            thread_id=thread_id,
+                            text=text,
+                            keyboard=keyboard,
+                            parse_mode=parse_mode,
+                        )
+                record = query.order_by(TelegramMessage.created_at.desc()).first()
+            finally:
+                session.close()
+
+            def normalize_keyboard(value: str) -> str:
+                if not value:
+                    return value
+                try:
+                    parsed = json.loads(value)
+                except Exception:
+                    return value
+                try:
+                    return json.dumps(parsed, ensure_ascii=False)
+                except Exception:
+                    return value
+
+            if not record:
+                return render_template_string(
+                    TELEGRAM_EDIT_TEMPLATE,
+                    message="Сообщение не найдено в базе.",
+                    success=False,
+                    link=link,
+                    chat_id=chat_id,
+                    message_id=message_id,
+                    thread_id=thread_id,
+                    text=text,
+                    keyboard=keyboard,
+                    parse_mode=parse_mode,
+                )
+
+            return render_template_string(
+                TELEGRAM_EDIT_TEMPLATE,
+                message="Данные загружены из базы.",
+                success=True,
+                link=link,
+                chat_id=chat_id,
+                message_id=record.message_id,
+                thread_id=record.message_thread_id or "",
+                text=record.text or "",
+                keyboard=normalize_keyboard(record.reply_markup or ""),
+                parse_mode=record.parse_mode or "",
+            )
+
+        if link and (not message_id or not thread_id or not chat_id):
             try:
                 path = link.split("t.me/")[-1]
                 parts = [p for p in path.split("/") if p]
                 if len(parts) >= 3 and parts[0] == "c":
+                    if not chat_id:
+                        chat_id = f"-100{parts[1]}"
                     if len(parts) >= 4:
                         thread_id = thread_id or parts[2]
                         message_id = message_id or parts[3]
@@ -145,6 +385,7 @@ def edit_telegram_message():
                         message="Ссылка не распознана. Пример: https://t.me/c/3320447395/159/160",
                         success=False,
                         link=link,
+                        chat_id=chat_id,
                         message_id=message_id,
                         thread_id=thread_id,
                         text=text,
@@ -156,6 +397,7 @@ def edit_telegram_message():
                     message="Не удалось разобрать ссылку.",
                     success=False,
                     link=link,
+                    chat_id=chat_id,
                     message_id=message_id,
                     thread_id=thread_id,
                     text=text,
@@ -164,12 +406,14 @@ def edit_telegram_message():
 
         try:
             message_id_int = int(message_id)
+            chat_id_int = int(chat_id) if chat_id else int(Config.TELEGRAM_CHAT_ID)
         except (TypeError, ValueError):
             return render_template_string(
                 TELEGRAM_EDIT_TEMPLATE,
                 message="Некорректный message_id.",
                 success=False,
                 link=link,
+                chat_id=chat_id,
                 message_id=message_id,
                 thread_id=thread_id,
                 text=text,
@@ -186,6 +430,7 @@ def edit_telegram_message():
                     message="Некорректный thread_id.",
                     success=False,
                     link=link,
+                    chat_id=chat_id,
                     message_id=message_id,
                     thread_id=thread_id,
                     text=text,
@@ -202,6 +447,7 @@ def edit_telegram_message():
                     message="Некорректный JSON для клавиатуры.",
                     success=False,
                     link=link,
+                    chat_id=chat_id,
                     message_id=message_id,
                     thread_id=thread_id,
                     text=text,
@@ -210,9 +456,10 @@ def edit_telegram_message():
 
         if action in ("both", "text"):
             text_result = edit_message_text(
+                chat_id=chat_id_int,
                 message_id=message_id_int,
                 text=text,
-                parse_mode="HTML",
+                parse_mode=parse_mode or None,
                 message_thread_id=thread_id_int,
             )
             if not text_result.get("ok"):
@@ -221,6 +468,7 @@ def edit_telegram_message():
                     message=f"Ошибка обновления текста: {text_result.get('body')}",
                     success=False,
                     link=link,
+                    chat_id=chat_id,
                     message_id=message_id,
                     thread_id=thread_id,
                     text=text,
@@ -229,6 +477,7 @@ def edit_telegram_message():
 
         if action in ("both", "keyboard"):
             markup_result = edit_message_reply_markup(
+                chat_id=chat_id_int,
                 message_id=message_id_int,
                 reply_markup=reply_markup,
                 message_thread_id=thread_id_int,
@@ -239,6 +488,7 @@ def edit_telegram_message():
                     message=f"Ошибка обновления клавиатуры: {markup_result.get('body')}",
                     success=False,
                     link=link,
+                    chat_id=chat_id,
                     message_id=message_id,
                     thread_id=thread_id,
                     text=text,
@@ -257,9 +507,11 @@ def edit_telegram_message():
         message=message,
         success=success,
         link=link,
+        chat_id=chat_id,
         message_id=message_id,
         thread_id=thread_id,
         text=text,
         keyboard=keyboard,
+        parse_mode=parse_mode,
     )
 

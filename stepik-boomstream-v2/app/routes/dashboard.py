@@ -143,6 +143,10 @@ DASHBOARD_TEMPLATE = """
       <h3>👥 Пользователи</h3>
       <p>Управление пользователями и ролями</p>
     </a>
+    <a href="/admin/telegram/edit" class="menu-item admin">
+      <h3>Telegram Message Edit</h3>
+      <p>Edit sent Telegram messages</p>
+    </a>
     {% endif %}
   </div>
 

@@ -1,5 +1,8 @@
 from datetime import timedelta
 
+import threading
+import time
+
 from flask import Flask
 from .config import Config
 from .db import Base, engine
@@ -32,6 +35,30 @@ def create_app() -> Flask:
     ensure_telegram_notice_columns()
 
     warmup_similar_cache_async()
+
+    from .routes.questions import auto_close_due_discussions, auto_publish_daily_question
+
+    def _auto_close_loop():
+        while True:
+            try:
+                with app.app_context():
+                    auto_close_due_discussions()
+            except Exception as exc:
+                print(f"[AutoClose] Error: {exc}")
+            time.sleep(3600)
+
+    threading.Thread(target=_auto_close_loop, daemon=True).start()
+
+    def _auto_publish_loop():
+        while True:
+            try:
+                with app.app_context():
+                    auto_publish_daily_question()
+            except Exception as exc:
+                print(f"[AutoPublish] Error: {exc}")
+            time.sleep(10800)
+
+    threading.Thread(target=_auto_publish_loop, daemon=True).start()
 
     # Регистрируем blueprints
     app.register_blueprint(auth_bp)

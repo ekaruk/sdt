@@ -110,6 +110,24 @@ class TelegramUser(Base):
         )
 
 
+class TelegramMessage(Base):
+    __tablename__ = "telegram_messages"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger, nullable=False)
+    message_thread_id = Column(Integer, nullable=True)
+    message_id = Column(Integer, nullable=False)
+    ref_type = Column(String, nullable=True)
+    ref_id = Column(Integer, nullable=True)
+    text = Column(Text, nullable=True)
+    reply_markup = Column(Text, nullable=True)
+    parse_mode = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        Index('idx_telegram_messages_chat_message', 'chat_id', 'message_id'),
+    )
+
 # ============================================================================
 # QUESTIONS SYSTEM MODELS
 # ============================================================================

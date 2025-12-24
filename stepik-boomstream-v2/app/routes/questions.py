@@ -1,6 +1,6 @@
 import token
 from flask import Blueprint, session, redirect, render_template, render_template_string, request, jsonify, url_for
-from sqlalchemy import func, exists, Integer, Boolean
+from sqlalchemy import func, exists, Integer, Boolean, case
 from sqlalchemy.orm import aliased
 from datetime import datetime, timedelta
 import urllib.parse
@@ -12,6 +12,7 @@ from ..embeddings import upsert_question_embedding
 from ..telegram_service import (
     post_forum_topic_with_message,
     send_message,
+    close_forum_topic,
     pin_notice_message,
     unpin_notice_message,
     edit_notice_reply_markup,
@@ -1053,11 +1054,134 @@ def vote(question_id: int):
         db.close()
 
 
+def publish_question_to_telegram(db, question):
+    """Publish a question to Telegram and update DB objects."""
+    if not Config.TELEGRAM_BOT_TOKEN or not Config.TELEGRAM_CHAT_ID:
+        return {"ok": False, "error": "Telegram не настроен"}
+
+    existing_topic = db.query(TelegramTopic).filter_by(question_id=question.id).first()
+    if existing_topic:
+        return {"ok": False, "error": "Вопрос уже опубликован"}
+
+    topic_name = question.title or question.body[:100]
+    if len(topic_name) > 100:
+        topic_name = topic_name[:97] + '...'
+
+    icon_custom_emoji_id = None
+    first_module = None
+    if question.modules:
+        first_module = question.modules[0]
+        if first_module.forum_topic_icon:
+            icon_custom_emoji_id = first_module.forum_topic_icon
+
+    post_result = post_forum_topic_with_message(
+        chat_id=Config.TELEGRAM_CHAT_ID,
+        topic_name=topic_name,
+        message_text=question.body,
+        icon_custom_emoji_id=icon_custom_emoji_id,
+        parse_mode='Markdown',
+    )
+    if not post_result["ok"]:
+        return {"ok": False, "error": f"Ошибка публикации: {post_result.get('body')}"}
+
+    message_thread_id = int(post_result["message_thread_id"])
+    open_message_id = post_result.get("message_id")
+    topic_link = post_result.get("topic_link", "")
+
+    notice_message_id = None
+    notice_is_pinned = False
+    if Config.TELEGRAM_THREAD_ID:
+        try:
+            months = [
+                "января", "февраля", "марта", "апреля", "мая", "июня",
+                "июля", "августа", "сентября", "октября", "ноября", "декабря"
+            ]
+            now = datetime.utcnow()
+            date_text = f"{now.day} {months[now.month - 1]}"
+
+            module_title = first_module.title if first_module else "Без раздела"
+            emoji_tag = ""
+            if first_module and first_module.forum_topic_icon:
+                emoji_tag = f'<tg-emoji emoji-id="{first_module.forum_topic_icon}">✨</tg-emoji>'
+            notice_text = (
+                f"📌Вопрос дня - {date_text}\n\n"
+                f"<b>{question.title}</b>\n\n"
+                f"{question.body}\n"
+            )
+
+            keyboard = []
+            if topic_link:
+                keyboard.append([{
+                    "text": "🔘 Перейти к обсуждению",
+                    "url": topic_link
+                }])
+            keyboard.append([{
+                "text": "📌 Все открытые вопросы",
+                "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_posted"
+            }])
+            keyboard.append([{
+                "text": "❤️ Проголосовать за вопросы",
+                "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_voting"
+            }])
+
+            reply_markup = {"inline_keyboard": keyboard} if keyboard else None
+            notice_result = send_message(
+                chat_id=Config.TELEGRAM_CHAT_ID,
+                message_thread_id=int(Config.TELEGRAM_THREAD_ID),
+                text=notice_text,
+                parse_mode="HTML",
+                reply_markup=reply_markup,
+            )
+            notice_message_id = notice_result.get("message_id")
+            if notice_message_id:
+                prev_notice = (
+                    db.query(TelegramTopic)
+                    .filter(TelegramTopic.question_id != question.id)
+                    .order_by(TelegramTopic.opened_at.desc())
+                    .first()
+                )
+                if prev_notice and prev_notice.notice_message_id:
+                    old_topic_link = get_topic_link(
+                        prev_notice.chat_id,
+                        prev_notice.message_thread_id,
+                    )
+                    old_keyboard = []
+                    if old_topic_link:
+                        old_keyboard.append(
+                            [{"text": "🔘 Перейти к обсуждению", "url": old_topic_link}]
+                        )
+                    edit_notice_reply_markup(
+                        prev_notice.notice_message_id,
+                        {"inline_keyboard": old_keyboard},
+                    )
+        except Exception as e:
+            print(f"[WARNING] Failed to post publish notice: {e}")
+
+    telegram_topic = TelegramTopic(
+        question_id=question.id,
+        chat_id=int(Config.TELEGRAM_CHAT_ID),
+        message_thread_id=message_thread_id,
+        open_message_id=open_message_id,
+        notice_message_id=notice_message_id,
+        notice_is_pinned=notice_is_pinned,
+        opened_at=datetime.utcnow(),
+        close_at=datetime.utcnow() + timedelta(days=7),
+    )
+    db.add(telegram_topic)
+
+    question.status = 'POSTED'
+    question.posted_at = datetime.utcnow()
+
+    return {
+        "ok": True,
+        "thread_id": message_thread_id,
+        "topic_link": topic_link,
+    }
+
+
 @questions_bp.route("/<int:question_id>/publish", methods=["POST"])
 def publish_question(question_id: int):
-    """Публикация вопроса в Telegram форум-группу."""
-    
-    # Проверяем права (только curator+)
+    """Опубликовать вопрос в Telegram форум-группе."""
     user_id = session.get("user_id")
     user_role = None
     if user_id:
@@ -1068,173 +1192,30 @@ def publish_question(question_id: int):
                 user_role = user.role
         finally:
             db_temp.close()
-    
+
     if not user_role or user_role < 1:
         return jsonify({'success': False, 'error': 'Недостаточно прав'}), 403
-    
-    # Проверяем наличие необходимых параметров
+
     if not Config.TELEGRAM_BOT_TOKEN or not Config.TELEGRAM_CHAT_ID or not Config.TELEGRAM_THREAD_ID:
         return jsonify({'success': False, 'error': 'Telegram не настроен'}), 500
-    
+
     db = SessionLocal()
     try:
         question = db.query(Question).filter_by(id=question_id).first()
         if not question:
             return jsonify({'success': False, 'error': 'Вопрос не найден'}), 404
-        
-        # Проверяем что вопрос еще не опубликован
-        existing_topic = db.query(TelegramTopic).filter_by(question_id=question_id).first()
-        if existing_topic:
-            return jsonify({'success': False, 'error': 'Вопрос уже опубликован'}), 400
-        
-        # Формируем название темы (краткий текст)
-        topic_name = question.title or question.body[:100]
-        if len(topic_name) > 100:
-            topic_name = topic_name[:97] + '...'
-        
-        # Определяем иконку для топика из первого модуля вопроса (если есть)
-        icon_custom_emoji_id = None
-        first_module = None
-        if question.modules:
-            first_module = question.modules[0]
-            if first_module.forum_topic_icon:
-                icon_custom_emoji_id = first_module.forum_topic_icon
-        
-        # Логируем токен и chat_id для отладки
-#        print(f"[DEBUG] TELEGRAM_BOT_TOKEN: {Config.TELEGRAM_BOT_TOKEN}")
-#        print(f"[DEBUG] TELEGRAM_CHAT_ID: {Config.TELEGRAM_CHAT_ID}")
-        post_result = post_forum_topic_with_message(
-            chat_id=Config.TELEGRAM_CHAT_ID,
-            topic_name=topic_name,
-            message_text=question.body,
-            icon_custom_emoji_id=icon_custom_emoji_id,
-            parse_mode='Markdown',
-        )
-        if not post_result["ok"]:
-            return jsonify({
-                'success': False,
-                'error': f'Ошибка создания темы: {post_result.get("body")}'
-            }), 500
 
-        message_thread_id = int(post_result["message_thread_id"])
-        open_message_id = post_result.get("message_id")
-        topic_link = post_result.get("topic_link", "")
+        result = publish_question_to_telegram(db, question)
+        if not result["ok"]:
+            return jsonify({'success': False, 'error': result["error"]}), 500
 
-        notice_message_id = None
-        notice_is_pinned = False
-        # Post a notification in the configured forum topic, if set.
-        if Config.TELEGRAM_THREAD_ID:
-            try:
-                print(f"[DEBUG] sending post: {Config.TELEGRAM_CHAT_ID}, thread: {Config.TELEGRAM_THREAD_ID}")
-
-                months = [
-                    "января", "февраля", "марта", "апреля", "мая", "июня",
-                    "июля", "августа", "сентября", "октября", "ноября", "декабря"
-                ]
-                now = datetime.utcnow()
-                date_text = f"{now.day} {months[now.month - 1]}"
-
-                module_title = first_module.title if first_module else "Без раздела"
-                emoji_tag = ""
-                if first_module and first_module.forum_topic_icon:
-                    emoji_tag = f'<tg-emoji emoji-id="{first_module.forum_topic_icon}">✨</tg-emoji>'
-                notice_text = (
-                    f"📌Вопрос дня - {date_text}\n\n"
-#                    f"{emoji_tag}{module_title}{emoji_tag}\n\n"
-                    f"❓<b>{question.title}</b>❓\n\n"
-                    f"{question.body}✨\n"
-                )
-
-                keyboard = []
-                if topic_link:
-                    keyboard.append([{
-                        "text": "🟢 Перейти к обсуждению",
-                        "url": topic_link
-                    }])
-                keyboard.append([{
-                    "text": "📋 Все открытые вопросы",
-                    "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_posted"
-                }]) 
-                keyboard.append([{
-                    "text": "❤️ Проголосовать за вопросы",
-                    "url": f"https://t.me/{Config.TELEGRAM_BOT_USERNAME}/questions?startapp=status_voting"
-                }])
-
-
-                reply_markup = {"inline_keyboard": keyboard} if keyboard else None
-                payload = {
-                    "chat_id": Config.TELEGRAM_CHAT_ID,
-                    "message_thread_id": int(Config.TELEGRAM_THREAD_ID),
-                    "text": notice_text,
-                    "parse_mode": "HTML",
-                    "reply_markup": reply_markup,
-                }
-                print(f"[DEBUG] sending post (payload): {payload}")
-
-                notice_result = send_message(
-                    chat_id=Config.TELEGRAM_CHAT_ID,
-                    message_thread_id=int(Config.TELEGRAM_THREAD_ID),
-                    text=notice_text,
-                    parse_mode="HTML",
-                    reply_markup=reply_markup,
-                )
-                print(f"[NOTICE] status={notice_result.get('status_code')} body={notice_result.get('body')}")
-                notice_message_id = notice_result.get("message_id")
-                if notice_message_id:
-                    pinned_topic = (
-                        db.query(TelegramTopic)
-                        .filter_by(notice_is_pinned=True)
-                        .first()
-                    )
-                    if pinned_topic and pinned_topic.notice_message_id:
-                        old_topic_link = get_topic_link(
-                            pinned_topic.chat_id,
-                            pinned_topic.message_thread_id,
-                        )
-                        old_keyboard = []
-                        if old_topic_link:
-                            old_keyboard.append(
-                                [{"text": "🔘 Перейти к обсуждению", "url": old_topic_link}]
-                            )
-                        edit_notice_reply_markup(
-                            pinned_topic.notice_message_id,
-                            {"inline_keyboard": old_keyboard},
-                        )
-                        unpin_notice_message(pinned_topic.notice_message_id)
-                        pinned_topic.notice_is_pinned = False
-                        db.add(pinned_topic)
-                    pin_result = pin_notice_message(notice_message_id)
-                    notice_is_pinned = bool(pin_result.get("ok"))
-            except Exception as e:
-                print(f"[WARNING] Failed to post publish notice: {e}")
-                print(f"[WARNING] Failed to post publish notice: {e}")
-        
-        # Сохраняем связь в базе
-        telegram_topic = TelegramTopic(
-            question_id=question_id,
-            chat_id=int(Config.TELEGRAM_CHAT_ID),
-            message_thread_id=message_thread_id,
-            open_message_id=open_message_id,
-            notice_message_id=notice_message_id,
-            notice_is_pinned=notice_is_pinned,
-            opened_at=datetime.utcnow(),
-            close_at=datetime.utcnow() + timedelta(days=7)
-        )
-        db.add(telegram_topic)
-        
-        # Обновляем статус вопроса
-        question.status = 'POSTED'
-        question.posted_at = datetime.utcnow()
-        
-        db.commit();
-        
+        db.commit()
         return jsonify({
             'success': True,
             'message': 'Вопрос опубликован в Telegram',
-            'thread_id': message_thread_id,
-            'topic_link': topic_link,
+            'thread_id': result["thread_id"],
+            'topic_link': result["topic_link"],
         })
-        
     except Exception as e:
         db.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -1245,82 +1226,156 @@ def publish_question(question_id: int):
 @questions_bp.route("/<int:question_id>/close-discussion", methods=["POST"])
 def close_discussion(question_id):
     """Закрыть обсуждение в Telegram (закрыть тему)."""
-    # Проверяем авторизацию и права
     user_id = session.get("user_id")
     if not user_id:
         return jsonify({'success': False, 'error': 'Необходима авторизация'}), 401
-    
+
     db = SessionLocal()
     try:
-        # Проверяем права пользователя
         user = db.query(User).filter_by(id=user_id).first()
         if not user or user.role < 1:
             return jsonify({'success': False, 'error': 'Недостаточно прав'}), 403
-        
-        # Получаем вопрос
+
         question = db.query(Question).filter_by(id=question_id).first()
         if not question:
             return jsonify({'success': False, 'error': 'Вопрос не найден'}), 404
-        
-        # Проверяем, что вопрос опубликован
+
         if question.status != 'POSTED':
             return jsonify({'success': False, 'error': 'Вопрос не находится в обсуждении'}), 400
-        
-        # Получаем данные темы Telegram
+
         topic = db.query(TelegramTopic).filter_by(question_id=question_id).first()
         if not topic:
             return jsonify({'success': False, 'error': 'Тема в Telegram не найдена'}), 404
-        
-        # Получаем telegram username текущего пользователя
+
         telegram_user = None
         if user.telegram_id:
             telegram_user = db.query(TelegramUser).filter_by(id=user.telegram_id).first()
-        
+
         username_text = f"@{telegram_user.username}" if telegram_user and telegram_user.username else "администратором"
-        
-        # Отправляем сообщение о закрытии в тему
-        message_url = f'https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/sendMessage'
-        message_response = requests.post(message_url, json={
-            'chat_id': topic.chat_id,
-            'message_thread_id': topic.message_thread_id,
-            'text': f'🔒 Тема закрыта пользователем {username_text}'
-        })
-        
-        # Продолжаем даже если сообщение не отправилось
-        if not message_response.ok:
-            print(f"[WARNING] Не удалось отправить сообщение о закрытии: {message_response.text}")
-        
-        # Закрываем тему через Telegram API
-        close_url = f'https://api.telegram.org/bot{Config.TELEGRAM_BOT_TOKEN}/closeForumTopic'
-        close_response = requests.post(close_url, json={
-            'chat_id': topic.chat_id,
-            'message_thread_id': topic.message_thread_id
-        })
-        
-        if not close_response.ok:
-            error_data = close_response.json()
-            return jsonify({
-                'success': False,
-                'error': f'Ошибка закрытия темы: {error_data.get("description", "Неизвестная ошибка")}'
-            }), 500
-        
-        # Обновляем статус вопроса и время закрытия
-        question.status = 'CLOSED'
-        topic.closed_at = datetime.utcnow()
-        
+        notice_text = f"🔒 Тема закрыта пользователем {username_text}"
+
+        close_result = close_discussion_for_question(db, question, topic, notice_text)
+        if not close_result["ok"]:
+            return jsonify({'success': False, 'error': close_result["error"]}), 500
+
         db.commit()
-        
+
         return jsonify({
             'success': True,
             'message': 'Обсуждение закрыто'
         })
-        
+
     except Exception as e:
         db.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
     finally:
         db.close()
 
+
+def close_discussion_for_question(db, question, topic, notice_text):
+    """Close a Telegram topic and update DB."""
+    send_result = send_message(
+        chat_id=topic.chat_id,
+        message_thread_id=topic.message_thread_id,
+        text=notice_text,
+    )
+    if send_result.get("ok") and send_result.get("message_id") is not None:
+        topic.close_message_id = send_result["message_id"]
+    elif not send_result.get("ok"):
+        print(f"[WARNING] Failed to send close notice: {send_result.get('body')}")
+
+    close_result = close_forum_topic(
+        chat_id=topic.chat_id,
+        message_thread_id=topic.message_thread_id,
+    )
+    if not close_result.get("ok"):
+        body = close_result.get("body") or {}
+        error_text = body.get("description") if isinstance(body, dict) else str(body)
+        return {"ok": False, "error": f"Ошибка закрытия темы: {error_text}"}
+
+    question.status = 'CLOSED'
+    topic.closed_at = datetime.utcnow()
+    return {"ok": True}
+
+
+def auto_close_due_discussions():
+    """Close discussions whose close_at has passed."""
+    db = SessionLocal()
+    try:
+        now = datetime.utcnow()
+        rows = (
+            db.query(TelegramTopic, Question)
+            .join(Question, TelegramTopic.question_id == Question.id)
+            .filter(
+                Question.status == 'POSTED',
+                TelegramTopic.closed_at.is_(None),
+                TelegramTopic.close_at <= now,
+            )
+            .all()
+        )
+        for topic, question in rows:
+            result = close_discussion_for_question(
+                db,
+                question,
+                topic,
+                '🔒 Тема закрыта по расписанию',
+            )
+            if result["ok"]:
+                db.commit()
+            else:
+                db.rollback()
+                print(f"[AutoClose] Failed for question {question.id}: {result['error']}")
+    finally:
+        db.close()
+
+
+
+def auto_publish_daily_question():
+    """Auto-publish one question per day after 08:00 server time."""
+    db = SessionLocal()
+    try:
+        now = datetime.utcnow()
+        if now.hour < 8:
+            return
+
+        today = now.date()
+        posted_today = (
+            db.query(Question.id)
+            .filter(
+                Question.status == 'POSTED',
+                Question.posted_at.isnot(None),
+                func.date(Question.posted_at) == today,
+            )
+            .first()
+        )
+        if posted_today:
+            return
+
+        status_order = case(
+            (Question.status == 'SCHEDULED', 0),
+            else_=1,
+        )
+        candidate = (
+            db.query(Question)
+            .filter(Question.status.in_(['SCHEDULED', 'VOTING']))
+            .order_by(status_order, Question.votes_count.desc(), Question.created_at.asc())
+            .first()
+        )
+        if not candidate:
+            return
+
+        result = publish_question_to_telegram(db, candidate)
+        if result.get('ok'):
+            db.commit()
+            print(f"[AutoPublish] Published question {candidate.id}.")
+        else:
+            db.rollback()
+            print(f"[AutoPublish] Failed to publish: {result.get('error')}")
+    except Exception as exc:
+        db.rollback()
+        print(f"[AutoPublish] Error: {exc}")
+    finally:
+        db.close()
 
 @questions_bp.route("/<int:question_id>/archive", methods=["POST"])
 def archive_question(question_id):

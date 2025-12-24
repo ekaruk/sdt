@@ -1,8 +1,11 @@
 from typing import Any, Dict, Optional
 
+import json
 import requests
 
 from .config import Config
+from .db import SessionLocal
+from .models import TelegramMessage
 
 
 def _api_url(method: str) -> str:
@@ -55,6 +58,8 @@ def send_message(
     message_thread_id: Optional[int] = None,
     parse_mode: Optional[str] = None,
     reply_markup: Optional[Dict[str, Any]] = None,
+    ref_type: Optional[str] = None,
+    ref_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     payload: Dict[str, Any] = {"chat_id": chat_id, "text": text}
     if message_thread_id is not None:
@@ -69,11 +74,54 @@ def send_message(
         data = resp.json()
     except Exception:
         data = {"ok": False, "error": resp.text}
-    return {
+    result = {
         "ok": resp.ok,
         "status_code": resp.status_code,
         "body": data,
         "message_id": data.get("result", {}).get("message_id"),
+    }
+    if resp.ok and result["message_id"] is not None:
+        try:
+            session = SessionLocal()
+            session.add(
+                TelegramMessage(
+                    chat_id=chat_id,
+                    message_thread_id=message_thread_id,
+                    message_id=result["message_id"],
+                    ref_type=ref_type,
+                    ref_id=ref_id,
+                    text=text,
+                    reply_markup=json.dumps(reply_markup) if reply_markup else None,
+                    parse_mode=parse_mode,
+                )
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+        finally:
+            session.close()
+    return result
+
+
+def close_forum_topic(
+    *,
+    chat_id: Any,
+    message_thread_id: int,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "chat_id": chat_id,
+        "message_thread_id": message_thread_id,
+    }
+    resp = requests.post(_api_url("closeForumTopic"), json=payload)
+    data = {}
+    try:
+        data = resp.json()
+    except Exception:
+        data = {"ok": False, "error": resp.text}
+    return {
+        "ok": resp.ok,
+        "status_code": resp.status_code,
+        "body": data,
     }
 
 
@@ -147,11 +195,12 @@ def edit_notice_reply_markup(
 def edit_message_text(
     message_id: int,
     text: str,
+    chat_id: Optional[Any] = None,
     parse_mode: Optional[str] = None,
     message_thread_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
-        "chat_id": Config.TELEGRAM_CHAT_ID,
+        "chat_id": chat_id if chat_id is not None else Config.TELEGRAM_CHAT_ID,
         "message_id": message_id,
         "text": text,
     }
@@ -176,10 +225,11 @@ def edit_message_text(
 def edit_message_reply_markup(
     message_id: int,
     reply_markup: Optional[Dict[str, Any]],
+    chat_id: Optional[Any] = None,
     message_thread_id: Optional[int] = None,
 ) -> Dict[str, Any]:
     payload: Dict[str, Any] = {
-        "chat_id": Config.TELEGRAM_CHAT_ID,
+        "chat_id": chat_id if chat_id is not None else Config.TELEGRAM_CHAT_ID,
         "message_id": message_id,
         "reply_markup": reply_markup or {"inline_keyboard": []},
     }
