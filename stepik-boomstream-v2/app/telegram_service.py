@@ -144,6 +144,61 @@ def edit_notice_reply_markup(
     }
 
 
+def edit_message_text(
+    message_id: int,
+    text: str,
+    parse_mode: Optional[str] = None,
+    message_thread_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "chat_id": Config.TELEGRAM_CHAT_ID,
+        "message_id": message_id,
+        "text": text,
+    }
+    if parse_mode:
+        payload["parse_mode"] = parse_mode
+    thread_id = message_thread_id if message_thread_id is not None else _thread_id_from_config()
+    if thread_id is not None:
+        payload["message_thread_id"] = thread_id
+    resp = requests.post(_api_url("editMessageText"), json=payload)
+    data = {}
+    try:
+        data = resp.json()
+    except Exception:
+        data = {"ok": False, "error": resp.text}
+    return {
+        "ok": resp.ok,
+        "status_code": resp.status_code,
+        "body": data,
+    }
+
+
+def edit_message_reply_markup(
+    message_id: int,
+    reply_markup: Optional[Dict[str, Any]],
+    message_thread_id: Optional[int] = None,
+) -> Dict[str, Any]:
+    payload: Dict[str, Any] = {
+        "chat_id": Config.TELEGRAM_CHAT_ID,
+        "message_id": message_id,
+        "reply_markup": reply_markup or {"inline_keyboard": []},
+    }
+    thread_id = message_thread_id if message_thread_id is not None else _thread_id_from_config()
+    if thread_id is not None:
+        payload["message_thread_id"] = thread_id
+    resp = requests.post(_api_url("editMessageReplyMarkup"), json=payload)
+    data = {}
+    try:
+        data = resp.json()
+    except Exception:
+        data = {"ok": False, "error": resp.text}
+    return {
+        "ok": resp.ok,
+        "status_code": resp.status_code,
+        "body": data,
+    }
+
+
 def post_forum_topic_with_message(
     *,
     chat_id: Any,
