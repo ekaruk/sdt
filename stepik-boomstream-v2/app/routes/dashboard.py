@@ -147,6 +147,10 @@ DASHBOARD_TEMPLATE = """
       <h3>Telegram Message Edit</h3>
       <p>Edit sent Telegram messages</p>
     </a>
+    <a href="/admin/discussion-snapshot" class="menu-item admin">
+      <h3>Discussion Snapshot</h3>
+      <p>Generate JSON for AI summarization</p>
+    </a>
     {% endif %}
   </div>
 

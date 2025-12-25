@@ -59,3 +59,4 @@ voting_app/
 keys/
 stepik-boomstream-v2/venv/
 stepik-boomstream-v2/anon.session
+stepik-boomstream-v2/telethon.session

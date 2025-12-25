@@ -7,6 +7,7 @@ from ..models import User, TelegramUser, TelegramMessage
 from ..auth import admin_required
 from ..config import Config
 from ..telegram_service import edit_message_text, edit_message_reply_markup, send_message
+from ..discussion_snapshot import build_discussion_snapshot
 
 admin_bp = Blueprint("admin_bp", __name__, url_prefix="/admin")
 
@@ -165,6 +166,46 @@ TELEGRAM_EDIT_TEMPLATE = """
   }
 </script>
 
+</body>
+</html>
+"""
+
+
+DISCUSSION_SNAPSHOT_TEMPLATE = """
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discussion Snapshot</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .card { background: white; padding: 20px; border-radius: 10px; max-width: 820px; margin: 0 auto; }
+    label { display: block; margin: 12px 0 6px; font-weight: 600; }
+    input, textarea { width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; }
+    textarea { min-height: 240px; font-family: monospace; }
+    .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { background: #1976d2; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; }
+    .msg { margin-top: 12px; padding: 10px; border-radius: 6px; background: #eef7ee; }
+    .err { background: #ffecec; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Discussion Snapshot</h2>
+    {% if message %}
+      <div class="msg {{ 'err' if not success else '' }}">{{ message }}</div>
+    {% endif %}
+    <form method="post">
+      <label>question_id</label>
+      <input name="question_id" value="{{ question_id or '' }}">
+      <div class="actions">
+        <button class="btn" type="submit" name="action" value="generate">Generate JSON</button>
+      </div>
+      <label>Snapshot JSON</label>
+      <textarea name="snapshot" readonly>{{ snapshot or '' }}</textarea>
+    </form>
+  </div>
 </body>
 </html>
 """
@@ -513,5 +554,31 @@ def edit_telegram_message():
         text=text,
         keyboard=keyboard,
         parse_mode=parse_mode,
+    )
+
+
+@admin_bp.route("/discussion-snapshot", methods=["GET", "POST"])
+@admin_required
+def discussion_snapshot():
+    message = None
+    success = True
+    snapshot_text = ""
+    question_id = request.form.get("question_id") if request.method == "POST" else ""
+
+    if request.method == "POST":
+        try:
+            qid = int(question_id)
+            snapshot = build_discussion_snapshot(qid)
+            snapshot_text = json.dumps(snapshot, ensure_ascii=False, indent=2)
+        except Exception as exc:
+            message = f"Failed to generate snapshot: {exc}"
+            success = False
+
+    return render_template_string(
+        DISCUSSION_SNAPSHOT_TEMPLATE,
+        message=message,
+        success=success,
+        question_id=question_id,
+        snapshot=snapshot_text,
     )
 
