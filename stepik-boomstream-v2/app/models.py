@@ -128,6 +128,30 @@ class TelegramMessage(Base):
         Index('idx_telegram_messages_chat_message', 'chat_id', 'message_id'),
     )
 
+
+class TelegramDiscussionMessage(Base):
+    """Сообщения из обсуждений (topics) с количеством реакций."""
+    __tablename__ = "telegram_discussion_messages"
+
+    id = Column(Integer, primary_key=True)
+    chat_id = Column(BigInteger, nullable=False)
+    message_id = Column(BigInteger, nullable=False)
+    thread_id = Column(Integer, nullable=False)
+    user_id = Column(BigInteger, nullable=False)
+    text = Column(Text, nullable=True)
+    created_at = Column(DateTime, nullable=False)
+    edited_at = Column(DateTime, nullable=True)
+    reply_to_message_id = Column(BigInteger, nullable=True)
+    reaction_count = Column(Integer, nullable=False, default=0, server_default="0")
+
+    __table_args__ = (
+        UniqueConstraint('chat_id', 'message_id', name='uq_discussion_chat_message'),
+        Index('idx_discussion_thread', 'thread_id'),
+    )
+
+    def __repr__(self):
+        return f"<TelegramDiscussionMessage chat_id={self.chat_id} message_id={self.message_id} thread_id={self.thread_id}>"
+
 # ============================================================================
 # QUESTIONS SYSTEM MODELS
 # ============================================================================

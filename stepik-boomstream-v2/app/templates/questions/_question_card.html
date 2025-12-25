@@ -46,11 +46,16 @@
       </div>
     {% endif %}
     
-    {% if user_role is not none and user_role >= 0 %}
+{% if user_role is not none and user_role >= 0 %}
   {% if q.telegram_link %}
-    <a href="{{ q.telegram_link }}" target="_blank" class="telegram-link">
-      💬 Обсуждение в Telegram ({{ q.messages_count - 1 if q.messages_count > 0 else 0 }})
-    </a>
+    <div class="telegram-row">
+      <a href="{{ q.telegram_link }}" target="_blank" class="telegram-link">
+        💬 Обсуждение в Telegram ({{ q.messages_count - 1 if q.messages_count > 0 else 0 }})
+      </a>
+      {% if q.close_label %}
+        <div class="telegram-close">{{ q.close_label }}</div>
+      {% endif %}
+    </div>
   {% endif %}
 {% endif %}
   </div>

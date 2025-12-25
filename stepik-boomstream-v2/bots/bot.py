@@ -9,6 +9,7 @@ from telegram.ext import (
     CommandHandler,
     CallbackQueryHandler,
     MessageHandler,
+    MessageReactionHandler,
     filters,
     ContextTypes,
 )
@@ -25,6 +26,8 @@ sys.path.insert(0, str(ROOT))
 import logging
 
 from app.config import Config
+from app.db import SessionLocal
+from app.models import TelegramTopic, TelegramDiscussionMessage
 from menu_tree import SECTIONS  # тут твоё дерево с "root", "sec_...", "lesson_..."
 
 #python -m bots.bot_dev
@@ -278,34 +281,160 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def handle_forum_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Обработчик сообщений в форум-топиках для подсчета комментариев."""
-    
-    # Проверяем что это сообщение в форум-топике
-    if not update.message or not update.message.is_topic_message:
+    """Сохраняем сообщения из тем и считаем реакции."""
+    if update.edited_message:
         return
-    
-    thread_id = update.message.message_thread_id
-    chat_id = update.message.chat_id
-    
-    # Обновляем счетчик в базе данных
+    if not Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING or int(Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING) != 1:
+        return
+    print("handle_forum_messages:MESSAGE", update.message and update.message.message_id)
+    print("handle_forum_messages:EDITED", update.edited_message and update.edited_message.message_id)
+
+    message = update.message
+    if not message or not message.is_topic_message:
+        return
+
+    if message.chat_id != int(Config.TELEGRAM_CHAT_ID):
+        return
+
+    thread_id = message.message_thread_id
+    if thread_id is None:
+        return
+
+    if message.from_user and message.from_user.is_bot:
+        return
+
+    text = (message.text or message.caption or '').strip()
+    if not text:
+        return
+
+    db = SessionLocal()
     try:
-        from app.db import SessionLocal
-        from app.models import TelegramTopic
-        
-        db = SessionLocal()
         topic = db.query(TelegramTopic).filter_by(
-            chat_id=chat_id,
-            message_thread_id=thread_id
+            chat_id=message.chat_id,
+            message_thread_id=thread_id,
         ).first()
-        
         if topic:
-            topic.messages_count += 1
-            db.commit()
-            print(f"✅ Обновлен счетчик для топика {thread_id}: {topic.messages_count} сообщений")
-        
-        db.close()
+            topic.messages_count = (topic.messages_count or 0) + 1
+
+        record = db.query(TelegramDiscussionMessage).filter_by(
+            chat_id=message.chat_id,
+            message_id=message.message_id,
+        ).first()
+        if not record:
+            record = TelegramDiscussionMessage(
+                chat_id=message.chat_id,
+                message_id=message.message_id,
+                thread_id=thread_id,
+                user_id=message.from_user.id if message.from_user else 0,
+                text=text,
+                created_at=message.date,
+                edited_at=message.edit_date,
+                reply_to_message_id=message.reply_to_message.message_id if message.reply_to_message else None,
+                reaction_count=0,
+            )
+            db.add(record)
+        else:
+            record.text = text
+            record.edited_at = message.edit_date
+            if message.reply_to_message:
+                record.reply_to_message_id = message.reply_to_message.message_id
+        db.commit()
     except Exception as e:
-        print(f"❌ Ошибка обновления счетчика: {e}")
+        db.rollback()
+        print(f"[Bot] Error storing forum message: {e}")
+    finally:
+        db.close()
+
+
+async def handle_edited_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING or int(Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING) != 1:
+        return
+    print("handle_edited_message:MESSAGE", update.message and update.message.message_id)
+    print("handle_edited_message:EDITED", update.edited_message and update.edited_message.message_id)  
+    edited = update.edited_message
+    if not edited or edited.message_thread_id is None:
+        return
+    if edited.chat_id != int(Config.TELEGRAM_CHAT_ID):
+        return
+    if edited.from_user and edited.from_user.is_bot:
+        return
+    text = (edited.text or edited.caption or '').strip()
+    if not text:
+        return
+    db = SessionLocal()
+    try:
+        record = db.query(TelegramDiscussionMessage).filter_by(
+            chat_id=edited.chat_id,
+            message_id=edited.message_id,
+        ).first()
+        if not record:
+            return
+        record.text = text
+        record.edited_at = edited.edit_date or datetime.utcnow()
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Bot] Error updating edited message: {e}")
+    finally:
+        db.close()
+
+
+async def handle_message_reaction(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    
+    if not Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING or int(Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING) != 1:
+        return
+    mr = update.message_reaction
+    if not mr:
+        return
+    if mr.chat.id != int(Config.TELEGRAM_CHAT_ID):
+        return
+    db = SessionLocal()
+    try:
+        record = db.query(TelegramDiscussionMessage).filter_by(
+            chat_id=mr.chat.id,
+            message_id=mr.message_id,
+        ).first()
+        if not record:
+            return
+        old_reactions = mr.old_reaction or []
+        new_reactions = mr.new_reaction or []
+        delta = len(new_reactions) - len(old_reactions)
+        record.reaction_count = max(0, (record.reaction_count or 0) + delta)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Bot] Error updating reactions: {e}")
+    finally:
+        db.close()
+
+async def handle_message_reaction_count(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING or int(Config.TELEGRAM_ENABLE_FORUM_MESSAGE_TRACKING) != 1:
+        return
+    mrc = update.message_reaction_count
+    if not mrc:
+        return
+    if mrc.chat.id != int(Config.TELEGRAM_CHAT_ID):
+        return
+    db = SessionLocal()
+    try:
+        record = db.query(TelegramDiscussionMessage).filter_by(
+            chat_id=mrc.chat.id,
+            message_id=mrc.message_id,
+        ).first()
+        if not record:
+            return
+        total_count = mrc.total_reaction_count or 0
+        if total_count == 1:
+            record.reaction_count = (record.reaction_count or 0) + 1
+        else:
+            record.reaction_count = max(0, total_count)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"[Bot] Error updating reaction count: {e}")
+    finally:
+        db.close()
+
 
 
 def main():
@@ -320,9 +449,18 @@ def main():
     app.add_handler(CallbackQueryHandler(menu_callback, pattern=r"^(menu|refresh|toggle):"))
     
     # Обработчик для всех сообщений в форум-топиках
-    app.add_handler(MessageHandler(filters.ChatType.SUPERGROUP & filters.IS_TOPIC_MESSAGE, handle_forum_messages))
+    app.add_handler(MessageHandler(filters.UpdateType.EDITED_MESSAGE, handle_edited_message))
+    app.add_handler(MessageHandler(filters.ChatType.SUPERGROUP & filters.IS_TOPIC_MESSAGE, handle_forum_messages, block=False))
+    app.add_handler(MessageReactionHandler(
+        handle_message_reaction,
+        message_reaction_types=MessageReactionHandler.MESSAGE_REACTION_UPDATED,
+    ))
+    app.add_handler(MessageReactionHandler(
+        handle_message_reaction_count,
+        message_reaction_types=MessageReactionHandler.MESSAGE_REACTION_COUNT_UPDATED,
+    ))
     
-    app.run_polling()
+    app.run_polling(allowed_updates=Update.ALL_TYPES)
 
 
 if __name__ == "__main__":

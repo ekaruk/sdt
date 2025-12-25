@@ -300,7 +300,6 @@ QUESTIONS_PAGE_TEMPLATE = """
     
     .telegram-link {
       display: inline-block;
-      margin-top: 8px;
       padding: 6px 12px;
       background: #0088cc;
       color: white;
@@ -311,6 +310,20 @@ QUESTIONS_PAGE_TEMPLATE = """
     
     .telegram-link:hover {
       background: #006699;
+    }
+
+    .telegram-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+    }
+
+    .telegram-close {
+      margin-left: auto;
+      font-size: 13px;
+      color: #6b7280;
+      white-space: nowrap;
     }
     
     .empty-state {
@@ -801,6 +814,17 @@ def generate_summary_api():
   except Exception as e:
     return jsonify({"success": False, "error": str(e)}), 500
 
+def get_close_label(close_at_dt):
+    if not close_at_dt:
+        return None
+    today = datetime.utcnow().date()
+    close_date = close_at_dt.date()
+    if close_date == today:
+        return "🔓 Закроется сегодня"
+    if close_date == today + timedelta(days=1):
+        return "🔓 Открыто до завтра"
+    return f"🔓 Открыто до {close_date.strftime('%d.%m')}"
+
 @questions_bp.route("", methods=["GET"])
 def list_questions():
     init_data = request.args.get("tg_init_data") or request.headers.get("X-Telegram-Init-Data") or ""
@@ -922,6 +946,9 @@ def list_questions():
                 if topic:
                     telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
                     messages_count = topic.messages_count or 0
+                close_label = None
+                if question.status == 'POSTED' and topic:
+                    close_label = get_close_label(topic.close_at)
                 body_preview = question.body[:300] + '...' if len(question.body) > 300 else question.body
                 questions_data.append({
                     'id': question.id,
@@ -935,6 +962,7 @@ def list_questions():
                     'summary': answer_preview,
                     'telegram_link': telegram_link,
                     'messages_count': messages_count,
+                    'close_label': close_label,
                     'created_at': question.created_at
                 })
         else:
@@ -950,6 +978,9 @@ def list_questions():
                 if topic:
                     telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
                     messages_count = topic.messages_count or 0
+                close_label = None
+                if question.status == 'POSTED' and topic:
+                    close_label = get_close_label(topic.close_at)
                 body_preview = question.body[:300] + '...' if len(question.body) > 300 else question.body
                 questions_data.append({
                     'id': question.id,
@@ -963,6 +994,7 @@ def list_questions():
                     'summary': answer_preview,
                     'telegram_link': telegram_link,
                     'messages_count': messages_count,
+                    'close_label': close_label,
                     'created_at': question.created_at
                 })
         
@@ -1112,7 +1144,7 @@ def publish_question_to_telegram(db, question):
             keyboard = []
             if topic_link:
                 keyboard.append([{
-                    "text": "🔘 Перейти к обсуждению",
+                    "text": "🟢 Перейти к обсуждению",
                     "url": topic_link
                 }])
             keyboard.append([{
@@ -1303,6 +1335,10 @@ def auto_close_due_discussions():
     db = SessionLocal()
     try:
         now = datetime.utcnow()
+
+        if now.hour < 20:
+            return
+
         rows = (
             db.query(TelegramTopic, Question)
             .join(Question, TelegramTopic.question_id == Question.id)
@@ -2816,9 +2852,12 @@ MINIAPP_TEMPLATE = """
               ` : ''}
               
               ${q.telegram_link ? `
-                <a href="${q.telegram_link}" class="telegram-link">
-                  💬 Перейти к обсуждению в Telegram (${q.messages_count > 0 ? q.messages_count - 1 : 0})
-                </a>
+                <div class="telegram-row">
+                  <a href="${q.telegram_link}" class="telegram-link">
+                    💬 Перейти к обсуждению в Telegram (${q.messages_count > 0 ? q.messages_count - 1 : 0})
+                  </a>
+                  ${q.close_label ? `<div class="telegram-close">${q.close_label}</div>` : ''}
+                </div>
               ` : ''}
             </div>
           `).join('')}
@@ -3147,6 +3186,9 @@ def api_questions():
                 telegram_link = f"https://t.me/c/{str(topic.chat_id)[4:]}/{topic.message_thread_id}"
                 messages_count = topic.messages_count or 0
                 print(f"[DEBUG] Question {question.id}: messages_count = {messages_count}")
+            close_label = None
+            if question.status == 'POSTED' and topic:
+                close_label = get_close_label(topic.close_at)
             # Превью текста
             body_preview = question.body[:250] + '...' if len(question.body) > 250 else question.body
             questions_data.append({
@@ -3161,6 +3203,7 @@ def api_questions():
                 'summary': summary,
                 'telegram_link': telegram_link,
                 'messages_count': messages_count,
+                'close_label': close_label,
                 'created_at': question.created_at.isoformat() if question.created_at else None
             })
         return jsonify({

@@ -49,7 +49,8 @@ export TELEGRAM_BOT_TOKEN="123456789:AAAA-BBB..."
 ## Локальный запуск
 
 ```bash
-python -m venv venv
+cd C:\sdt\stepik-boomstream-v2\
+python -3.11 -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 
